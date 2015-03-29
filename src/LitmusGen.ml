@@ -84,6 +84,7 @@ let field_to_var = String.uncapitalize
 let field_to_pp map (_, f) =
   (* special cases - see comments in field_to_parse above for details *)
   (* Note: not pretty-printing FXM to crX, it is too error-prone *)
+  if f = "BF" then (assert (is_imm f map); Printf.sprintf "(pp_crf %s)" (field_to_var f)) else
   if f = "DS" then (assert (is_imm f map); Printf.sprintf "(pp_ds %s)" (field_to_var f)) else
   if is_imm f map then field_to_var f
   else Printf.sprintf "(pp_reg %s)" (field_to_var f)
