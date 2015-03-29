@@ -73,11 +73,18 @@ let field_to_parse f map =
   (* special case for BF and FXM, allowed to be written crX for extended mnemonics *)
   if f = "BF" then (assert (is_imm f map); "crindex") else
   if f = "FXM" then (assert (is_imm f map); "crmask") else
+  (* special case for DS field, which is a byte offset in assembly, but
+   * a word offset in the binary representation - cf. section 3.3.1 of
+   * Power ISA 2.07 *)
+  if f = "DS" then (assert (is_imm f map); "ds") else
     (* collapse idx into k, they are the same anyway *)
   if is_imm f map then "k" else "reg"
 
 let field_to_var = String.uncapitalize
 let field_to_pp map (_, f) =
+  (* special cases - see comments in field_to_parse above for details *)
+  (* Note: not pretty-printing FXM to crX, it is too error-prone *)
+  if f = "DS" then (assert (is_imm f map); Printf.sprintf "(pp_ds %s)" (field_to_var f)) else
   if is_imm f map then field_to_var f
   else Printf.sprintf "(pp_reg %s)" (field_to_var f)
 
@@ -215,6 +222,10 @@ let gen_compile map m =
   let imms = List.filter (fun (_, f) -> is_imm f map) m.params in
   let inp_reg_from = List.filter (fun (_, f) -> is_inpregfrom f map) m.params in
   let out_reg_from = List.filter (fun (_, f) -> is_outregfrom f map) m.params in
+  let pp_imm (_, f) =
+    (* DS must be pretty-printed as a byte offset for GCC *)
+    if f = "DS" then Printf.sprintf "(%s lsr 2)" (field_to_var f)
+    else field_to_var f in
   let memo_string special_ra inputs f =
     let s =
       if (snd f) = "RA" && special_ra then
@@ -241,7 +252,7 @@ let gen_compile map m =
 
       (name_to_string m)
       (String.concat ""   (List.map (memo_string false inputs) m.params))
-      (String.concat " "  (List.map (fun (_, f) -> field_to_var f) imms))
+      (String.concat " "  (List.map pp_imm imms))
 
       (String.concat "; " (List.map (fun (_, f) -> field_to_var f) inputs))
       (String.concat "; " (List.map (fun (_, f) -> field_to_var f) outputs))
@@ -261,11 +272,11 @@ let gen_compile map m =
       (name_to_string m)
       (String.concat ""   (List.map (memo_string true plain_inputs)
                              m.params))
-      (String.concat " "  (List.map (fun (_, f) -> field_to_var f) imms))
+      (String.concat " "  (List.map pp_imm imms))
 
       (name_to_string m)
       (String.concat ""   (List.map (memo_string false inputs) m.params))
-      (String.concat " "  (List.map (fun (_, f) -> field_to_var f) imms))
+      (String.concat " "  (List.map pp_imm imms))
 
       (String.concat "; " (List.map (fun (_, f) -> field_to_var f) plain_inputs))
       (String.concat "; " (List.map (fun (_, f) -> field_to_var f) inputs))
