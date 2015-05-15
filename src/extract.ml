@@ -196,10 +196,10 @@ let extract xmlfile gendir =
   let i = Xmlm.make_input ~strip:true (`Channel ic) in
   let o = Xmlm.make_output ~indent:(Some 2) (`Channel oc) in
   let t =  Xml.in_tree i in
-  let t' = XML.prune t in
+  let t' = XML_fixes.prune t in
   Xml.out_tree o (List.hd t');
   close_in ic; close_out oc;
-  let instrs = XML.parse_instrs t' in
+  let instrs = XML_fixes.parse_instrs t' in
   let instrs = List.filter (function i -> not (internal i)) instrs in
   let map i = 
     (* Argh! Lmw and Stmw treat RT/RS respectively as a loop index, causing
