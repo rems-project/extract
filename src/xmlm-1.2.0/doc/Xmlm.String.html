@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="next" href="Xmlm.Buffer.html">
+<link rel="Up" href="Xmlm.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Xmlm" rel="Chapter" href="Xmlm.html"><title>Xmlm.String</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="Xmlm.html" title="Xmlm">Up</a>
+&nbsp;<a class="post" href="Xmlm.Buffer.html" title="Xmlm.Buffer">Next</a>
+</div>
+<h1>Module type <a href="type_Xmlm.String.html">Xmlm.String</a></h1>
+<pre><span class="keyword">module type</span> String = <code class="code"><span class="keyword">sig</span></code> <a href="Xmlm.String.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Input signature for strings.<br>
+</div>
+<hr width="100%">
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
+<div class="info">
+The type for strings.<br>
+</div>
+
+<pre><span id="VALempty"><span class="keyword">val</span> empty</span> : <code class="type"><a href="Xmlm.String.html#TYPEt">t</a></code></pre><div class="info">
+The empty string.<br>
+</div>
+<pre><span id="VALlength"><span class="keyword">val</span> length</span> : <code class="type"><a href="Xmlm.String.html#TYPEt">t</a> -> int</code></pre><div class="info">
+Returns the length of the string.<br>
+</div>
+<pre><span id="VALappend"><span class="keyword">val</span> append</span> : <code class="type"><a href="Xmlm.String.html#TYPEt">t</a> -> <a href="Xmlm.String.html#TYPEt">t</a> -> <a href="Xmlm.String.html#TYPEt">t</a></code></pre><div class="info">
+Concatenates two strings.<br>
+</div>
+<pre><span id="VALlowercase"><span class="keyword">val</span> lowercase</span> : <code class="type"><a href="Xmlm.String.html#TYPEt">t</a> -> <a href="Xmlm.String.html#TYPEt">t</a></code></pre><div class="info">
+New string with uppercase letter translated
+      to lowercase (correctness is only needed for ASCII
+      <a href="http://www.unicode.org/glossary/#code_point">code point</a>).<br>
+</div>
+<pre><span id="VALiter"><span class="keyword">val</span> iter</span> : <code class="type">(int -> unit) -> <a href="Xmlm.String.html#TYPEt">t</a> -> unit</code></pre><div class="info">
+Iterates over the unicode 
+      <a href="http://www.unicode.org/glossary/#code_point">code point</a>
+      of the given string.<br>
+</div>
+<pre><span id="VALof_string"><span class="keyword">val</span> of_string</span> : <code class="type"><a href="Xmlm.html#TYPEstd_string">Xmlm.std_string</a> -> <a href="Xmlm.String.html#TYPEt">t</a></code></pre><div class="info">
+String from an OCaml string.<br>
+</div>
+<pre><span id="VALto_utf_8"><span class="keyword">val</span> to_utf_8</span> : <code class="type">('a -> <a href="Xmlm.html#TYPEstd_string">Xmlm.std_string</a> -> 'a) -> 'a -> <a href="Xmlm.String.html#TYPEt">t</a> -> 'a</code></pre><div class="info">
+<code class="code">to_utf_8 f v s</code>, is <code class="code">f (... (f (f v s1) s2) ...) sn</code>. Where the
+      concatenation of <code class="code">s1</code>, <code class="code">s2</code>, ... <code class="code">sn</code> is <code class="code">s</code> as an UTF-8 stream.<br>
+</div>
+<pre><span id="VALcompare"><span class="keyword">val</span> compare</span> : <code class="type"><a href="Xmlm.String.html#TYPEt">t</a> -> <a href="Xmlm.String.html#TYPEt">t</a> -> int</code></pre><div class="info">
+String comparison. Binary comparison is sufficent.<br>
+</div>
+</body></html>

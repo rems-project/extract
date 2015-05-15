@@ -1,0 +1,743 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Xmlm" rel="Chapter" href="Xmlm.html"><link title="Basic types and values" rel="Section" href="#1_Basictypesandvalues">
+<link title="Input" rel="Section" href="#1_Input">
+<link title="Output" rel="Section" href="#1_Output">
+<link title="Functorial interface (deprecated)" rel="Section" href="#sto">
+<link title="Features and limitations" rel="Section" href="#io">
+<link title="Examples" rel="Section" href="#ex">
+<link title="Input" rel="Subsection" href="#input">
+<link title="Output" rel="Subsection" href="#output">
+<link title="Tips" rel="Subsection" href="#2_Tips">
+<link title="Sequential processing" rel="Subsection" href="#exseq">
+<link title="Tree processing" rel="Subsection" href="#extree">
+<link title="Tabular data processing" rel="Subsection" href="#exrow">
+<title>Xmlm</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;</div>
+<h1>Module <a href="type_Xmlm.html">Xmlm</a></h1>
+<pre><span class="keyword">module</span> Xmlm: <code class="code"><span class="keyword">sig</span></code> <a href="Xmlm.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Streaming XML codec.  
+<p>
+
+    A well-formed sequence of <a href="Xmlm.html#TYPEsignal">signals</a> represents an
+    <a href="http://www.w3.org/TR/REC-xml">XML</a> document tree traversal in
+    depth first order (this has nothing to do with XML
+    well-formedness). Input pulls a well-formed sequence of signals
+    from a data source and output pushes a well-formed sequence of
+    signals to a data destination. Functions are provided to easily 
+    transform sequences of signals to/from arborescent data structures.
+<p>
+
+    Consult the <a href="Xmlm.html#io">features and limitations</a> and <a href="Xmlm.html#ex">examples</a> 
+    of use.
+<p>
+
+    <em>Release 1.2.0 — Daniel Bünzli &lt;daniel.buenzl i@erratique.ch&gt; </em>
+<p>
+
+    <h3 id="3_References">References</h3>
+    <ul>
+<li>Tim Bray. 
+    <em><a href="http://www.xml.com/axml/axml.html">The annotated XML Specification</a></em>, 
+    1998.</li>
+<li>Tim Bray et al. 
+    <em><a href="http://www.w3.org/TR/xml-names11">Namespaces in XML 1.1 (2nd ed.)</a></em>,
+    2006.</li>
+</ul>
+<br>
+</div>
+<hr width="100%">
+<br>
+<h1 id="1_Basictypesandvalues">Basic types and values</h1><br>
+<pre><span id="TYPEencoding"><span class="keyword">type</span> <code class="type"></code>encoding</span> = <code class="type">[ `ISO_8859_1 | `US_ASCII | `UTF_16 | `UTF_16BE | `UTF_16LE | `UTF_8 ]</code> </pre>
+<div class="info">
+The type for character encodings. For <code class="code"><span class="keywordsign">`</span><span class="constructor">UTF_16</span></code>, endianness is
+    determined from the 
+    <a href="http://www.unicode.org/unicode/faq/utf_bom.html#BOM">BOM</a>.<br>
+</div>
+
+<pre><span id="TYPEdtd"><span class="keyword">type</span> <code class="type"></code>dtd</span> = <code class="type">string option</code> </pre>
+<div class="info">
+The type for the optional
+    <a href="http://www.w3.org/TR/REC-xml/#dt-doctype">DTD</a>.<br>
+</div>
+
+<pre><span id="TYPEname"><span class="keyword">type</span> <code class="type"></code>name</span> = <code class="type">string * string</code> </pre>
+<div class="info">
+The type for attribute and element's
+    <a href="http://www.w3.org/TR/xml-names11/#dt-expname">expanded names</a> 
+    <code class="code">(uri,local)</code>. An empty <code class="code">uri</code> represents a name without a
+    namespace name, i.e. an unprefixed name 
+    that is not under the scope of a default namespace.<br>
+</div>
+
+<pre><span id="TYPEattribute"><span class="keyword">type</span> <code class="type"></code>attribute</span> = <code class="type"><a href="Xmlm.html#TYPEname">name</a> * string</code> </pre>
+<div class="info">
+The type for attributes. Name and attribute data.<br>
+</div>
+
+<pre><span id="TYPEtag"><span class="keyword">type</span> <code class="type"></code>tag</span> = <code class="type"><a href="Xmlm.html#TYPEname">name</a> * <a href="Xmlm.html#TYPEattribute">attribute</a> list</code> </pre>
+<div class="info">
+The type for an element tag. Tag name and attribute list.<br>
+</div>
+
+<pre><span id="TYPEsignal"><span class="keyword">type</span> <code class="type"></code>signal</span> = <code class="type">[ `Data of string | `Dtd of <a href="Xmlm.html#TYPEdtd">dtd</a> | `El_end | `El_start of <a href="Xmlm.html#TYPEtag">tag</a> ]</code> </pre>
+<div class="info">
+The type for signals. A <em>well-formed</em> sequence of signals belongs
+    to the language of the <code class="code">doc</code> grammar :
+    <pre class="codepre"><code class="code">doc&nbsp;::=&nbsp;<span class="keywordsign">`</span><span class="constructor">Dtd</span>&nbsp;tree<br>
+tree&nbsp;::=&nbsp;<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;child&nbsp;<span class="keywordsign">`</span><span class="constructor">El_end</span><br>
+child&nbsp;::=&nbsp;<span class="keywordsign">`</span><span class="constructor">Data</span>&nbsp;<span class="keywordsign">|</span>&nbsp;tree&nbsp;<span class="keywordsign">|</span>&nbsp;epsilon&nbsp;</code></pre>
+    Input and output deal only with well-formed sequences or
+    exceptions are raised.<br>
+</div>
+
+<pre><span id="VALns_xml"><span class="keyword">val</span> ns_xml</span> : <code class="type">string</code></pre><div class="info">
+Namespace name <a href="http://www.w3.org/XML/1998/namespace">value</a> bound to the 
+    reserved <code class="code"><span class="string">"xml"</span></code> prefix.<br>
+</div>
+<pre><span id="VALns_xmlns"><span class="keyword">val</span> ns_xmlns</span> : <code class="type">string</code></pre><div class="info">
+Namespace name <a href="http://www.w3.org/2000/xmlns/">value</a> bound to the 
+    reserved <code class="code"><span class="string">"xmlns"</span></code> prefix.<br>
+</div>
+<br>
+<h1 id="1_Input">Input</h1><br>
+<pre><span id="TYPEpos"><span class="keyword">type</span> <code class="type"></code>pos</span> = <code class="type">int * int</code> </pre>
+<div class="info">
+The type for input positions. Line and column number, both start
+    with 1.<br>
+</div>
+
+<pre><span id="TYPEerror"><span class="keyword">type</span> <code class="type"></code>error</span> = <code class="type">[ `Expected_char_seqs of string list * string<br>       | `Expected_root_element<br>       | `Illegal_char_ref of string<br>       | `Illegal_char_seq of string<br>       | `Malformed_char_stream<br>       | `Max_buffer_size<br>       | `Unexpected_eoi<br>       | `Unknown_encoding of string<br>       | `Unknown_entity_ref of string<br>       | `Unknown_ns_prefix of string ]</code> </pre>
+<div class="info">
+The type for input errors.<br>
+</div>
+
+<pre><span id="VALerror_message"><span class="keyword">val</span> error_message</span> : <code class="type"><a href="Xmlm.html#TYPEerror">error</a> -> string</code></pre><div class="info">
+Converts the error to an english error message.<br>
+</div>
+<pre><span id="EXCEPTIONError"><span class="keyword">exception</span> Error</span> <span class="keyword">of</span> <code class="type"><a href="Xmlm.html#TYPEpos">pos</a> * <a href="Xmlm.html#TYPEerror">error</a></code></pre>
+<div class="info">
+Raised on input errors.<br>
+</div>
+<pre><span id="TYPEsource"><span class="keyword">type</span> <code class="type"></code>source</span> = <code class="type">[ `Channel of Pervasives.in_channel<br>       | `Fun of unit -> int<br>       | `String of int * string ]</code> </pre>
+<div class="info">
+The type for input sources. For <code class="code"><span class="keywordsign">`</span><span class="constructor">String</span></code> starts reading at the
+    given integer position. For <code class="code"><span class="keywordsign">`</span><span class="constructor">Fun</span></code> the function must return the
+    next <em>byte</em> as an <code class="code">int</code> and raise <code class="code"><span class="constructor">End_of_file</span></code> if there is no
+    such byte.<br>
+</div>
+
+<pre><span id="TYPEinput"><span class="keyword">type</span> <code class="type"></code>input</span> </pre>
+<div class="info">
+The type for input abstractions.<br>
+</div>
+
+<pre><span id="VALmake_input"><span class="keyword">val</span> make_input</span> : <code class="type">?enc:<a href="Xmlm.html#TYPEencoding">encoding</a> option -><br>       ?strip:bool -><br>       ?ns:(string -> string option) -><br>       ?entity:(string -> string option) -> <a href="Xmlm.html#TYPEsource">source</a> -> <a href="Xmlm.html#TYPEinput">input</a></code></pre><div class="info">
+Returns a new input abstraction reading from the given source.
+    <ul>
+<li><code class="code">enc</code>, character encoding of the document, <a href="Xmlm.html#inenc"> details</a>. 
+       Defaults to <code class="code"><span class="constructor">None</span></code>.</li>
+<li><code class="code">strip</code>, strips whitespace in character data, <a href="Xmlm.html#inwspace"> details</a>.
+       Defaults to <code class="code"><span class="keyword">false</span></code>.</li>
+<li><code class="code">ns</code> is called to bind undeclared namespace prefixes,
+       <a href="Xmlm.html#inns"> details</a>. Default returns always <code class="code"><span class="constructor">None</span></code>.</li>
+<li><code class="code">entity</code> is called to resolve non predefined entity references,
+       <a href="Xmlm.html#inentity"> details</a>. Default returns always <code class="code"><span class="constructor">None</span></code>.</li>
+</ul>
+<br>
+</div>
+<pre><span id="VALinput"><span class="keyword">val</span> input</span> : <code class="type"><a href="Xmlm.html#TYPEinput">input</a> -> <a href="Xmlm.html#TYPEsignal">signal</a></code></pre><div class="info">
+Inputs a signal. Repeated invocation of the function with the same
+    input abstraction will generate a <a href="Xmlm.html#TYPEsignal">well-formed</a> sequence
+    of signals or an <a href="Xmlm.html#EXCEPTIONError"><code class="code"><span class="constructor">Xmlm</span>.<span class="constructor">Error</span></code></a> is raised. Furthermore there will be no
+    two consecutive <code class="code"><span class="keywordsign">`</span><span class="constructor">Data</span></code> signals in the sequence and their string
+    is always non empty. 
+<p>
+
+    <b>Deprecated</b> After a well-formed sequence was input another may 
+    be input, see <a href="Xmlm.html#VALeoi"><code class="code"><span class="constructor">Xmlm</span>.eoi</code></a> and <a href="Xmlm.html#iseq">details</a>.
+<p>
+
+    <b>Raises</b> <a href="Xmlm.html#EXCEPTIONError"><code class="code"><span class="constructor">Xmlm</span>.<span class="constructor">Error</span></code></a> on input errors.<br>
+</div>
+<pre><span id="VALinput_tree"><span class="keyword">val</span> input_tree</span> : <code class="type">el:(<a href="Xmlm.html#TYPEtag">tag</a> -> 'a list -> 'a) -> data:(string -> 'a) -> <a href="Xmlm.html#TYPEinput">input</a> -> 'a</code></pre><div class="info">
+If the next signal is a :
+    <ul>
+<li><code class="code"><span class="keywordsign">`</span><span class="constructor">Data</span></code> signal, inputs it and invokes <code class="code">data</code> with the character data.</li>
+<li><code class="code"><span class="keywordsign">`</span><span class="constructor">El_start</span></code> signal, inputs the sequence of signals until its 
+       matching <code class="code"><span class="keywordsign">`</span><span class="constructor">El_end</span></code> and invokes <code class="code">el</code> and <code class="code">data</code> as follows
+    <ul>
+<li><code class="code">el</code>, is called on each <code class="code"><span class="keywordsign">`</span><span class="constructor">El_end</span></code> signals with the corresponding 
+      <code class="code"><span class="keywordsign">`</span><span class="constructor">El_start</span></code> tag and the result of the callback invocation for the 
+      element's children.</li>
+<li><code class="code">data</code>, is called on each <code class="code"><span class="keywordsign">`</span><span class="constructor">Data</span></code> signals with the character data. 
+      This function won't be called twice consecutively or with the empty 
+      string.</li>
+</ul>
+</li>
+<li>Other signals, raises <code class="code"><span class="constructor">Invalid_argument</span></code>.</li>
+</ul>
+
+<p>
+
+    <b>Raises</b> <a href="Xmlm.html#EXCEPTIONError"><code class="code"><span class="constructor">Xmlm</span>.<span class="constructor">Error</span></code></a> on input errors and <code class="code"><span class="constructor">Invalid_argument</span></code>
+      if the next signal is not <code class="code"><span class="keywordsign">`</span><span class="constructor">El_start</span></code> or <code class="code"><span class="keywordsign">`</span><span class="constructor">Data</span></code>.<br>
+</div>
+<pre><span id="VALinput_doc_tree"><span class="keyword">val</span> input_doc_tree</span> : <code class="type">el:(<a href="Xmlm.html#TYPEtag">tag</a> -> 'a list -> 'a) -><br>       data:(string -> 'a) -> <a href="Xmlm.html#TYPEinput">input</a> -> <a href="Xmlm.html#TYPEdtd">dtd</a> * 'a</code></pre><div class="info">
+Same as <a href="Xmlm.html#VALinput_tree"><code class="code"><span class="constructor">Xmlm</span>.input_tree</code></a> but reads a complete <a href="Xmlm.html#TYPEsignal">well-formed</a>  
+    sequence of signals. 
+<p>
+
+    <b>Raises</b> <a href="Xmlm.html#EXCEPTIONError"><code class="code"><span class="constructor">Xmlm</span>.<span class="constructor">Error</span></code></a> on input errors and <code class="code"><span class="constructor">Invalid_argument</span></code>
+     if the next signal is not <code class="code"><span class="keywordsign">`</span><span class="constructor">Dtd</span></code>.<br>
+</div>
+<pre><span id="VALpeek"><span class="keyword">val</span> peek</span> : <code class="type"><a href="Xmlm.html#TYPEinput">input</a> -> <a href="Xmlm.html#TYPEsignal">signal</a></code></pre><div class="info">
+Same as <a href="Xmlm.html#VALinput"><code class="code"><span class="constructor">Xmlm</span>.input</code></a> but doesn't remove the signal from the sequence. 
+<p>
+
+    <b>Raises</b> <a href="Xmlm.html#EXCEPTIONError"><code class="code"><span class="constructor">Xmlm</span>.<span class="constructor">Error</span></code></a> on input errors.<br>
+</div>
+<pre><span id="VALeoi"><span class="keyword">val</span> eoi</span> : <code class="type"><a href="Xmlm.html#TYPEinput">input</a> -> bool</code></pre><div class="info">
+Returns <code class="code"><span class="keyword">true</span></code> if the end of input is reached. See <a href="Xmlm.html#iseq">details</a>.
+<p>
+
+    <b>Raises</b> <a href="Xmlm.html#EXCEPTIONError"><code class="code"><span class="constructor">Xmlm</span>.<span class="constructor">Error</span></code></a> on input errors.<br>
+</div>
+<pre><span id="VALpos"><span class="keyword">val</span> pos</span> : <code class="type"><a href="Xmlm.html#TYPEinput">input</a> -> <a href="Xmlm.html#TYPEpos">pos</a></code></pre><div class="info">
+Current position in the input abstraction.<br>
+</div>
+<br>
+<h1 id="1_Output">Output</h1><br>
+<pre><span id="TYPEfrag"><span class="keyword">type</span> <code class="type">'a</code> frag</span> = <code class="type">[ `Data of string | `El of <a href="Xmlm.html#TYPEtag">tag</a> * 'a list ]</code> </pre>
+<div class="info">
+The type for deconstructing data structures of type <code class="code"><span class="keywordsign">'</span>a</code>.<br>
+</div>
+
+<pre><span id="TYPEdest"><span class="keyword">type</span> <code class="type"></code>dest</span> = <code class="type">[ `Buffer of Buffer.t<br>       | `Channel of Pervasives.out_channel<br>       | `Fun of int -> unit ]</code> </pre>
+<div class="info">
+The type for output destinations. For <code class="code"><span class="keywordsign">`</span><span class="constructor">Buffer</span></code>, the buffer won't
+    be cleared. For <code class="code"><span class="keywordsign">`</span><span class="constructor">Fun</span></code> the function is called with the output <em>    bytes</em> as <code class="code">int</code>s.<br>
+</div>
+
+<pre><span id="TYPEoutput"><span class="keyword">type</span> <code class="type"></code>output</span> </pre>
+<div class="info">
+The type for output abstractions.<br>
+</div>
+
+<pre><span id="VALmake_output"><span class="keyword">val</span> make_output</span> : <code class="type">?decl:bool -><br>       ?nl:bool -><br>       ?indent:int option -><br>       ?ns_prefix:(string -> string option) -> <a href="Xmlm.html#TYPEdest">dest</a> -> <a href="Xmlm.html#TYPEoutput">output</a></code></pre><div class="info">
+Returns a new output abstraction writing to the given destination.
+    <ul>
+<li><code class="code">decl</code>, if <code class="code"><span class="keyword">true</span></code> the <a href="http://www.w3.org/TR/REC-xml/#NT-XMLDecl"> XML
+     declaration</a> is output (defaults to <code class="code"><span class="keyword">true</span></code>).</li>
+<li><code class="code">nl</code>, if <code class="code"><span class="keyword">true</span></code> a newline is output when the root's element <code class="code"><span class="keywordsign">`</span><span class="constructor">El_end</span></code> 
+     signal is output.
+    Defaults to <code class="code"><span class="keyword">false</span></code>.</li>
+<li><code class="code">indent</code>, identation behaviour, see <a href="Xmlm.html#outindent"> details</a>. Defaults to
+      <code class="code"><span class="constructor">None</span></code>.</li>
+<li><code class="code">ns_prefix</code>, undeclared namespace prefix bindings, 
+       see <a href="Xmlm.html#outns">details</a>. Default returns always <code class="code"><span class="constructor">None</span></code>.</li>
+</ul>
+<br>
+</div>
+<pre><span id="VALoutput"><span class="keyword">val</span> output</span> : <code class="type"><a href="Xmlm.html#TYPEoutput">output</a> -> <a href="Xmlm.html#TYPEsignal">signal</a> -> unit</code></pre><div class="info">
+Outputs a signal. 
+<p>
+
+    <b>Deprecated.</b> After a well-formed sequence of signals was output
+    a new well-formed sequence can be output.
+<p>
+
+    <b>Raises</b> <code class="code"><span class="constructor">Invalid_argument</span></code> if the resulting signal sequence on
+    the output abstraction is not <a href="Xmlm.html#TYPEsignal">well-formed</a> or if a
+    namespace name could not be bound to a prefix.<br>
+</div>
+<pre><span id="VALoutput_depth"><span class="keyword">val</span> output_depth</span> : <code class="type"><a href="Xmlm.html#TYPEoutput">output</a> -> int</code></pre><div class="info">
+<code class="code">output_depth o</code> is <code class="code">o</code>'s current element nesting level (undefined
+    before the first <code class="code"><span class="keywordsign">`</span><span class="constructor">El_start</span></code> and after the last <code class="code"><span class="keywordsign">`</span><span class="constructor">El_end</span></code>).<br>
+</div>
+<pre><span id="VALoutput_tree"><span class="keyword">val</span> output_tree</span> : <code class="type">('a -> 'a <a href="Xmlm.html#TYPEfrag">frag</a>) -> <a href="Xmlm.html#TYPEoutput">output</a> -> 'a -> unit</code></pre><div class="info">
+Outputs signals corresponding to a value by recursively
+    applying the given value deconstructor.
+<p>
+
+    <b>Raises</b> see <a href="Xmlm.html#VALoutput"><code class="code"><span class="constructor">Xmlm</span>.output</code></a>.<br>
+</div>
+<pre><span id="VALoutput_doc_tree"><span class="keyword">val</span> output_doc_tree</span> : <code class="type">('a -> 'a <a href="Xmlm.html#TYPEfrag">frag</a>) -> <a href="Xmlm.html#TYPEoutput">output</a> -> <a href="Xmlm.html#TYPEdtd">dtd</a> * 'a -> unit</code></pre><div class="info">
+Same as <a href="Xmlm.html#VALoutput_tree"><code class="code"><span class="constructor">Xmlm</span>.output_tree</code></a> but outputs a complete <a href="Xmlm.html#TYPEsignal">well-formed</a> 
+    sequence of signals.
+<p>
+
+    <b>Raises</b> see <a href="Xmlm.html#VALoutput"><code class="code"><span class="constructor">Xmlm</span>.output</code></a>.<br>
+</div>
+<br>
+<h1 id="sto">Functorial interface (deprecated)</h1> 
+<p>
+
+    <b>WARNING.</b> The functioral interface is deprecated and will be 
+    removed.
+<p>
+
+    <a href="Xmlm.Make.html"><code class="code"><span class="constructor">Xmlm</span>.<span class="constructor">Make</span></code></a> allows client to specify types for strings and internal
+    buffers. Among other things this can be used to perform
+    hash-consing or to process the character stream, e.g. to normalize
+    unicode characters or to convert to a custom encoding.<br>
+<pre><span id="TYPEstd_string"><span class="keyword">type</span> <code class="type"></code>std_string</span> = <code class="type">string</code> </pre>
+
+<pre><span id="TYPEstd_buffer"><span class="keyword">type</span> <code class="type"></code>std_buffer</span> = <code class="type">Buffer.t</code> </pre>
+
+<pre><span class="keyword">module type</span> <a href="Xmlm.String.html">String</a> = <code class="code"><span class="keyword">sig</span></code> <a href="Xmlm.String.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Input signature for strings.
+</div>
+<pre><span class="keyword">module type</span> <a href="Xmlm.Buffer.html">Buffer</a> = <code class="code"><span class="keyword">sig</span></code> <a href="Xmlm.Buffer.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Input signature for internal buffers.
+</div>
+<pre><span class="keyword">module type</span> <a href="Xmlm.S.html">S</a> = <code class="code"><span class="keyword">sig</span></code> <a href="Xmlm.S.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Output signature of <a href="Xmlm.Make.html"><code class="code"><span class="constructor">Xmlm</span>.<span class="constructor">Make</span></code></a>.
+</div>
+<pre><span class="keyword">module</span> <a href="Xmlm.Make.html">Make</a>: <div class="sig_block"><code class="code"><span class="keyword">functor</span> (</code><code class="code"><span class="constructor">String</span></code><code class="code"> : </code><code class="type"><a href="Xmlm.String.html">String</a></code><code class="code">) <span class="keywordsign">-&gt;</span> </code><div class="sig_block"><code class="code"><span class="keyword">functor</span> (</code><code class="code"><span class="constructor">Buffer</span></code><code class="code"> : </code><code class="type"><a href="Xmlm.Buffer.html">Buffer</a></code><code class="type">  with type string = String.t</code><code class="code">) <span class="keywordsign">-&gt;</span> </code><code class="type"><a href="Xmlm.S.html">S</a></code><code class="type"> 
+  with type string = String.t</code></div></div></pre><div class="info">
+Functor building streaming XML IO with the given strings and buffers.
+</div>
+<br>
+<h1 id="io">Features and limitations</h1>
+<p>
+
+    The module assumes strings are immutable, thus strings
+    the client gives or receives <em>during</em> the input and output process 
+    must not be modified.
+    <h2 id="input">Input</h2>
+    <h3 id="inenc">Encoding</h3>    
+<p>
+
+    The parser supports ASCII, US-ASCII, 
+    <a href="http://www.faqs.org/rfcs/rfc3629.html"> UTF-8</a>,
+    <a href="http://www.faqs.org/rfcs/rfc2781.html"> UTF-16</a>,
+    <a href="http://www.faqs.org/rfcs/rfc2781.html"> UTF-16LE</a>,
+    <a href="http://www.faqs.org/rfcs/rfc2781.html"> UTF-16BE</a> and
+    <a href="http://anubis.dkuug.dk/JTC1/SC2/WG3/docs/n411.pdf">ISO-8559-1</a> 
+    (Latin-1) encoded documents. But strings returned by
+    the library are <b>always</b> UTF-8 encoded. 
+<p>
+
+    The encoding can be specified explicitly using the optional
+    argument <code class="code">enc</code>. Otherwise the parser uses UTF-16 or UTF-8 if there is a
+    <a href="http://www.unicode.org/unicode/faq/utf_bom.html#BOM">BOM</a> at the
+    beginning of the document. If there is no BOM it uses the encoding
+    specified in the <a href="http://www.w3.org/TR/REC-xml/#NT-XMLDecl"> XML
+    declaration</a>. Finally, if there is no XML declaration UTF-8 is assumed.
+    <h3 id="inwspace">White space handling</h3>
+<p>
+
+    The parser performs
+    <a href="http://www.w3.org/TR/REC-xml/#AVNormalize">attribute data
+    normalization</a> on <em>every</em> attribute data.  This means that
+    attribute data does not have leading and trailling white space and that 
+    any white space is collapsed and transformed to a single space 
+    character (<code class="code"><span class="constructor">U</span>+0020</code>).
+<p>
+
+    White space handling of character data depends on the <code class="code">strip</code>
+    argument. If <code class="code">strip</code> is <code class="code"><span class="keyword">true</span></code>, character data is treated like
+    attribute data, white space before and after elements is removed
+    and any white space is collapsed and transformed to a single
+    space character (<code class="code"><span class="constructor">U</span>+0020</code>), except if the data is under the scope of a <em>    xml:space</em> attribute whose value is <em>preserve</em>.  If <code class="code">strip</code> is
+    <code class="code"><span class="keyword">false</span></code> all white space data is preserved as present in the
+    document (however all kinds of
+    <a href="http://www.w3.org/TR/REC-xml/#sec-line-ends">line ends</a> are
+    translated to the newline character (<code class="code"><span class="constructor">U</span>+000<span class="constructor">A</span></code>).  <h3 id="inns">Namespaces</h3>
+<p>
+
+    Xmlm's <a href="Xmlm.html#TYPEname">names</a> are
+    <a href="http://www.w3.org/TR/xml-names11/#dt-expname">expanded names</a>.
+    The parser automatically handles the document's namespace
+    declarations.  Undeclared namespace prefixes can be bound via the
+    callback <code class="code">ns</code>, which must return a namespace name. If <code class="code">ns</code> returns
+    <code class="code"><span class="constructor">None</span></code> an <code class="code"><span class="keywordsign">`</span><span class="constructor">Unknown_ns_prefix</span></code> error is raised.
+<p>
+
+    Attributes used for namespace declarations are preserved by the
+    parser. They are in the <a href="Xmlm.html#VALns_xmlns"><code class="code"><span class="constructor">Xmlm</span>.ns_xmlns</code></a> namespace. Default namespace
+    declarations made with <i>xmlns</i> have the attribute name
+    <code class="code">(<span class="constructor">Xmlm</span>.ns_xmlns, <span class="string">"xmlns"</span>)</code>. Prefix declarations have the prefix as
+    the local name, for example <i>xmlns:ex</i> results in the attribute name
+    <code class="code">(<span class="constructor">Xmlm</span>.ns_xmlns, <span class="string">"ex"</span>)</code>.
+<p>
+
+    Regarding constraints on the usage of the <i>xml</i> and <i>xmlns</i>
+    prefixes by documents, the parser does not report errors on violations 
+    of the <i>must</i> constraints listed in
+    <a href="http://www.w3.org/TR/xml-names11/#xmlReserved">this paragraph</a>. 
+<p>
+
+    <h3 id="inentity">Character and entity references</h3>
+<p>
+
+    <a href="http://www.w3.org/TR/REC-xml/#dt-charref">Character references</a>
+    and <a href="http://www.w3.org/TR/REC-xml/#sec-predefined-ent">predefined
+    entities</a> are automatically resolved. Other entity references can
+    be resolved by the callback <code class="code">entity</code>, which must return an UTF-8
+    string corresponding to the
+    replacement character data.  The replacement data is <em>not</em>
+    analysed for further references, it is added to the data as such
+    modulo white space stripping. If <code class="code">entity</code> returns <code class="code"><span class="constructor">None</span></code> the error
+    <code class="code"><span class="keywordsign">`</span><span class="constructor">Unknown_entity_ref</span></code> is returned.    
+<p>
+
+    <h3 id="iseq">Sequences of documents (deprecated)</h3>
+<p>
+
+    <b>WARNING.</b> This feature is deprecated and will be removed.
+<p>
+
+    When a well-formed sequence of signals is input, no data is consumed beyond
+    the closing <code class="code"><span class="string">'&gt;'</span></code> of the document's root element. 
+<p>
+
+    If you want to parse a document as
+    <a href="http://www.w3.org/TR/REC-xml/#NT-document">defined</a> in the XML
+    specification, call <a href="Xmlm.html#VALeoi"><code class="code"><span class="constructor">Xmlm</span>.eoi</code></a> after a well-formed sequence of
+    signals, it must return <code class="code"><span class="keyword">true</span></code>. If you expect another document on
+    the same input abstraction a new well-formed sequence of signals
+    can be <a href="Xmlm.html#VALinput"><code class="code"><span class="constructor">Xmlm</span>.input</code></a>. Use <a href="Xmlm.html#VALeoi"><code class="code"><span class="constructor">Xmlm</span>.eoi</code></a> to check if a document follows (this
+    may consume data).
+<p>
+
+    Invoking <a href="Xmlm.html#VALeoi"><code class="code"><span class="constructor">Xmlm</span>.eoi</code></a> after a well-formed sequence of signals skips
+    whitespaces, comments and processing instructions until it gets to
+    either an <a href="http://www.w3.org/TR/REC-xml/#NT-XMLDecl"> XML
+    declaration</a> or a <a href="http://www.w3.org/TR/REC-xml/#dt-doctype">DTD</a>
+    or the start of a new element or the end of input (in which case
+    <a href="Xmlm.html#VALeoi"><code class="code"><span class="constructor">Xmlm</span>.eoi</code></a> returns <code class="code"><span class="keyword">true</span></code>).  If there is a new document but there is no
+    XML declaration or the declaration specifies UTF-16, the same
+    encoding as for the previous document is used.
+<p>
+
+    <h3 id="inmisc">Miscellaneous</h3>
+    <ul>
+<li>Parses the more liberal and simpler XML 1.1 
+    <a href="http://www.w3.org/TR/xml11/#NT-Name">Name</a> definition (minus <code class="code"><span class="string">':'</span></code> because
+    of namespaces).</li>
+<li>The <a href="http://www.w3.org/TR/REC-xml/#dt-doctype">DTD</a> is parsed
+      roughly (no guarantee it is well formed) and its information is ignored.</li>
+<li>The parser drops 
+    <a href="http://www.w3.org/TR/REC-xml/#dt-comment">comments</a>, 
+    <a href="http://www.w3.org/TR/REC-xml/#dt-pi">processing instructions</a>, and 
+    <a href="http://www.w3.org/TR/REC-xml/#sec-rmd">standalone declaration</a>.</li>
+<li>Element attributes are not checked for uniqueness.</li>
+<li>Attribute and character data chunks are limited by 
+       <code class="code"><span class="constructor">Sys</span>.max_string_length</code>. 
+       The error <code class="code"><span class="keywordsign">`</span><span class="constructor">Max_buffer_size</span></code> is raised if the limit is hit.</li>
+<li>Tail recursive.</li>
+<li>Non validating.</li>
+</ul>
+
+<p>
+
+    <h2 id="output">Output</h2> 
+    <h3 id="outenc">Encoding</h3> 
+<p>
+
+    Outputs only <a href="http://www.faqs.org/rfcs/rfc3629.html"> UTF-8</a>
+    encoded documents.  Strings given to
+    output functions <b>must be</b> UTF-8 encoded, no checks are
+    performed. Unicode characters that are not legal XML
+    <a href="http://www.w3.org/TR/REC-xml/#NT-Char">characters</a> are replaced
+    by the <a href="http://unicode.org/glossary/#replacement_character">Unicode 
+    replacement character</a>.
+<p>
+
+    <h3 id="outns">Namespaces</h3>
+<p>
+
+    Xmlm's <a href="#TYPEname">names</a> are
+    <a href="http://www.w3.org/TR/xml-names11/#dt-expname">expanded names</a>.
+    Expanded names are automatically converted to
+    <a href="http://www.w3.org/TR/xml-names11/#dt-qualname">qualified
+    names</a> by the output abstraction. There is no particular api to specify 
+    prefixes and default namespaces, 
+    the actual result depends solely on the output
+    of attributes belonging to the <a href="Xmlm.html#VALns_xmlns"><code class="code"><span class="constructor">Xmlm</span>.ns_xmlns</code></a> namespace. For example to set 
+    the default namespace of an element to <i>http://example.org/myns</i>, 
+    use the following attribute :
+    <pre class="codepre"><code class="code"><span class="comment">(*&nbsp;xmlns='http://example.org/myns'&nbsp;*)</span><br>
+<span class="keyword">let</span>&nbsp;default_ns&nbsp;=&nbsp;(<span class="constructor">Xmlm</span>.ns_xmlns,&nbsp;<span class="string">"xmlns"</span>),&nbsp;<span class="string">"http://example.org/myns"</span></code></pre>
+    To bind the prefix <code class="code"><span class="string">"ex"</span></code> to <i>http://example.org/ex</i>, use the 
+    following attribute :
+    <pre class="codepre"><code class="code"><span class="comment">(*&nbsp;xmlns:ex='http://example.org/ex'&nbsp;*)</span><br>
+<span class="keyword">let</span>&nbsp;ex_ns&nbsp;=&nbsp;(<span class="constructor">Xmlm</span>.ns_xmlns,&nbsp;<span class="string">"ex"</span>),&nbsp;<span class="string">"http://example.org/ex"</span></code></pre>
+    Note that outputing input signals without
+    touching namespace declaration attributes will preserve existing
+    prefixes and bindings provided the same namespace name is not
+    bound to different prefixes in a given context.
+<p>
+
+    The callback <code class="code">ns_prefix</code> of an output abstraction can be used to
+    give a prefix to a namespace name lacking a prefix binding in the
+    current output scope. Given a namespace name the function must return 
+    the prefix to use. Note that this
+    will <b>not</b> add any namespace declaration attribute to the
+    output.  If the function returns <code class="code"><span class="constructor">None</span></code>, <a href="Xmlm.html#VALoutput"><code class="code"><span class="constructor">Xmlm</span>.output</code></a> will raise
+    <code class="code"><span class="constructor">Invalid_argument</span></code>.  The default function returns always <code class="code"><span class="constructor">None</span></code>.
+    <h3 id="outindent">Indentation</h3>
+<p>
+
+    Output can be indented by specifying the <code class="code">indent</code> argument when an
+       output abstraction is created. If <code class="code">indent</code> is <code class="code"><span class="constructor">None</span></code> (default)
+       signal output does not introduce any extra white space.  If
+       <code class="code">ident</code> is <code class="code"><span class="constructor">Some</span> c</code>, each <a href="Xmlm.html#TYPEsignal"><code class="code"><span class="constructor">Xmlm</span>.signal</code></a> is output on its own line
+       (for empty elements <code class="code"><span class="keywordsign">`</span><span class="constructor">El_start</span></code> and <code class="code"><span class="keywordsign">`</span><span class="constructor">El_end</span></code> are collapsed on a single
+       line) and nested elements are indented with <code class="code">c</code> space
+       characters.
+<p>
+
+    <h3 id="oseq">Sequences of documents (deprecated)</h3> 
+<p>
+
+    <b>WARNING.</b> This feature is deprecated and will be removed.
+<p>
+
+    After a well-formed sequence of signals was output, the output
+    abstraction can be reused to output a new well-formed sequence of
+    signals.
+<p>
+
+    <h3 id="outmisc">Miscellaneous</h3>
+    <ul>
+<li>Output on a channel does not flush it.</li>
+<li>In attribute and character data you provide, markup 
+       delimiters <code class="code"><span class="string">'&lt;'</span></code>,<code class="code"><span class="string">'&gt;'</span></code>,<code class="code"><span class="string">'&amp;'</span></code>, and <code class="code">'\"'</code> are 
+        automatically escaped to 
+        <a href="http://www.w3.org/TR/REC-xml/#sec-predefined-ent">predefined
+        entities</a>.</li>
+<li>No checks are peformed on the prefix and local part of output
+      names to verify they are
+      <a href="http://www.w3.org/TR/xml-names11/#NT-NCName">NCName</a>s.
+      For example using the tag name <code class="code">(<span class="string">""</span>,<span class="string">"dip d"</span>)</code> will produce 
+      a non well-formed document because of the space character.</li>
+<li>Tail recursive.</li>
+</ul>
+
+<p>
+
+    <h2 id="2_Tips">Tips</h2> 
+    <ul>
+<li>The best options to do an input/output round trip
+       and preserve as much information as possible is to 
+       input with <code class="code">strip = <span class="keyword">false</span></code> and output with <code class="code">indent = <span class="constructor">None</span></code>.</li>
+<li>Complete whitespace control on output is achieved 
+       with <code class="code">indent = <span class="constructor">None</span></code> and suitable <code class="code"><span class="keywordsign">`</span><span class="constructor">Data</span></code> signals</li>
+</ul>
+
+<p>
+
+    <h1 id="ex">Examples</h1> 
+<p>
+
+    <h2 id="exseq">Sequential processing</h2>    
+<p>
+
+    Sequential processing has the advantage that you don't need to get
+    the whole document tree in memory to process it.
+<p>
+
+    The following function reads a <em>single</em> document on an
+    input channel and outputs it.
+<pre class="codepre"><code class="code"><span class="keyword">let</span>&nbsp;id&nbsp;ic&nbsp;oc&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;i&nbsp;=&nbsp;<span class="constructor">Xmlm</span>.make_input&nbsp;(<span class="keywordsign">`</span><span class="constructor">Channel</span>&nbsp;ic)&nbsp;<span class="keyword">in</span>&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;o&nbsp;=&nbsp;<span class="constructor">Xmlm</span>.make_output&nbsp;(<span class="keywordsign">`</span><span class="constructor">Channel</span>&nbsp;oc)&nbsp;<span class="keyword">in</span>&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;pull&nbsp;i&nbsp;o&nbsp;depth&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Xmlm</span>.output&nbsp;o&nbsp;(<span class="constructor">Xmlm</span>.peek&nbsp;i);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">match</span>&nbsp;<span class="constructor">Xmlm</span>.input&nbsp;i&nbsp;<span class="keyword">with</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;pull&nbsp;i&nbsp;o&nbsp;(depth&nbsp;+&nbsp;1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">El_end</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keyword">if</span>&nbsp;depth&nbsp;=&nbsp;1&nbsp;<span class="keyword">then</span>&nbsp;()&nbsp;<span class="keyword">else</span>&nbsp;pull&nbsp;i&nbsp;o&nbsp;(depth&nbsp;-&nbsp;1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">Data</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;pull&nbsp;i&nbsp;o&nbsp;depth&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">Dtd</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keyword">assert</span>&nbsp;<span class="keyword">false</span><br>
+&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="constructor">Xmlm</span>.output&nbsp;o&nbsp;(<span class="constructor">Xmlm</span>.input&nbsp;i);&nbsp;<span class="comment">(*&nbsp;`Dtd&nbsp;*)</span><br>
+&nbsp;&nbsp;pull&nbsp;i&nbsp;o&nbsp;0;<br>
+&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;not&nbsp;(<span class="constructor">Xmlm</span>.eoi&nbsp;i)&nbsp;<span class="keyword">then</span>&nbsp;invalid_arg&nbsp;<span class="string">"document&nbsp;not&nbsp;well-formed"</span></code></pre>
+<p>
+
+    The following function reads a <em>sequence</em> of documents on an
+    input channel and outputs it.
+<pre class="codepre"><code class="code"><span class="keyword">let</span>&nbsp;id_seq&nbsp;ic&nbsp;oc&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;i&nbsp;=&nbsp;<span class="constructor">Xmlm</span>.make_input&nbsp;(<span class="keywordsign">`</span><span class="constructor">Channel</span>&nbsp;ic)&nbsp;<span class="keyword">in</span>&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;o&nbsp;=&nbsp;<span class="constructor">Xmlm</span>.make_output&nbsp;~nl:<span class="keyword">true</span>&nbsp;(<span class="keywordsign">`</span><span class="constructor">Channel</span>&nbsp;oc)&nbsp;<span class="keyword">in</span>&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">while</span>&nbsp;not&nbsp;(<span class="constructor">Xmlm</span>.eoi&nbsp;i)&nbsp;<span class="keyword">do</span>&nbsp;<span class="constructor">Xmlm</span>.output&nbsp;o&nbsp;(<span class="constructor">Xmlm</span>.input&nbsp;i)&nbsp;<span class="keyword">done</span></code></pre>
+    The following function reads a <em>sequence</em> of documents on the 
+    input channel. In each document's tree it prunes non root elements
+    whose name belongs to <code class="code">prune_list</code>.
+<pre class="codepre"><code class="code"><span class="keyword">let</span>&nbsp;prune_docs&nbsp;prune_list&nbsp;ic&nbsp;oc&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;i&nbsp;=&nbsp;<span class="constructor">Xmlm</span>.make_input&nbsp;(<span class="keywordsign">`</span><span class="constructor">Channel</span>&nbsp;ic)&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;o&nbsp;=&nbsp;<span class="constructor">Xmlm</span>.make_output&nbsp;~nl:<span class="keyword">true</span>&nbsp;(<span class="keywordsign">`</span><span class="constructor">Channel</span>&nbsp;oc)&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;copy&nbsp;i&nbsp;o&nbsp;=&nbsp;<span class="constructor">Xmlm</span>.output&nbsp;o&nbsp;(<span class="constructor">Xmlm</span>.input&nbsp;i)&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;prune&nbsp;(name,&nbsp;_)&nbsp;=&nbsp;<span class="constructor">List</span>.mem&nbsp;name&nbsp;prune_list&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;process&nbsp;i&nbsp;o&nbsp;d&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;skip&nbsp;i&nbsp;d&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;<span class="constructor">Xmlm</span>.input&nbsp;i&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;skip&nbsp;i&nbsp;(d&nbsp;+&nbsp;1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">El_end</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keyword">if</span>&nbsp;d&nbsp;=&nbsp;1&nbsp;<span class="keyword">then</span>&nbsp;()&nbsp;<span class="keyword">else</span>&nbsp;skip&nbsp;i&nbsp;(d&nbsp;-&nbsp;1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;s&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;skip&nbsp;i&nbsp;d<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">match</span>&nbsp;<span class="constructor">Xmlm</span>.peek&nbsp;i&nbsp;<span class="keyword">with</span>&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;tag&nbsp;<span class="keyword">when</span>&nbsp;prune&nbsp;tag&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;skip&nbsp;i&nbsp;0;&nbsp;process&nbsp;i&nbsp;o&nbsp;d<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;copy&nbsp;i&nbsp;o;&nbsp;process&nbsp;i&nbsp;o&nbsp;(d&nbsp;+&nbsp;1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">El_end</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;copy&nbsp;i&nbsp;o;&nbsp;<span class="keyword">if</span>&nbsp;d&nbsp;=&nbsp;0&nbsp;<span class="keyword">then</span>&nbsp;()&nbsp;<span class="keyword">else</span>&nbsp;process&nbsp;i&nbsp;o&nbsp;(d&nbsp;-&nbsp;1)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">Data</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;copy&nbsp;i&nbsp;o;&nbsp;process&nbsp;i&nbsp;o&nbsp;d<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">Dtd</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keyword">assert</span>&nbsp;<span class="keyword">false</span><br>
+&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;docs&nbsp;i&nbsp;o&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;copy&nbsp;i&nbsp;o;&nbsp;<span class="comment">(*&nbsp;`Dtd&nbsp;*)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;copy&nbsp;i&nbsp;o;&nbsp;<span class="comment">(*&nbsp;root&nbsp;start&nbsp;*)</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;process&nbsp;i&nbsp;o&nbsp;0;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;<span class="constructor">Xmlm</span>.eoi&nbsp;i&nbsp;<span class="keyword">then</span>&nbsp;()&nbsp;<span class="keyword">else</span>&nbsp;docs&nbsp;i&nbsp;o<br>
+&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;docs&nbsp;i&nbsp;o</code></pre>
+<p>
+
+    <h2 id="extree">Tree processing</h2> 
+<p>
+
+    A document's sequence of signals can be easily converted
+    to an arborescent data structure. Assume your trees are defined by :
+    <pre class="codepre"><code class="code"><span class="keyword">type</span>&nbsp;tree&nbsp;=&nbsp;<span class="constructor">E</span>&nbsp;<span class="keyword">of</span>&nbsp;<span class="constructor">Xmlm</span>.tag&nbsp;*&nbsp;tree&nbsp;list&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">D</span>&nbsp;<span class="keyword">of</span>&nbsp;string</code></pre>
+    The following functions input/output xml documents from/to abstractions 
+    as value of type <code class="code">tree</code>.
+<pre class="codepre"><code class="code"><span class="keyword">let</span>&nbsp;in_tree&nbsp;i&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;el&nbsp;tag&nbsp;childs&nbsp;=&nbsp;<span class="constructor">E</span>&nbsp;(tag,&nbsp;childs)&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;data&nbsp;d&nbsp;=&nbsp;<span class="constructor">D</span>&nbsp;d&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="constructor">Xmlm</span>.input_doc_tree&nbsp;~el&nbsp;~data&nbsp;i<br>
+<br>
+<span class="keyword">let</span>&nbsp;out_tree&nbsp;o&nbsp;t&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;frag&nbsp;=&nbsp;<span class="keyword">function</span><br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">E</span>&nbsp;(tag,&nbsp;childs)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">El</span>&nbsp;(tag,&nbsp;childs)&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">D</span>&nbsp;d&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">Data</span>&nbsp;d&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="constructor">Xmlm</span>.output_doc_tree&nbsp;frag&nbsp;o&nbsp;t</code></pre> 
+<p>
+
+    <h2 id="exrow">Tabular data processing</h2>
+<p>
+
+    We show how to process XML data that represents tabular data (some
+    people like do that).
+<p>
+
+    The file we need to deal with represents nominal data about
+    <a href="http://www.w3.org/">W3C bureaucrats</a>. There are no namespaces
+    and attributes are ignored. The element structure of the document
+    is :
+    <ul>
+<li>&lt;list&gt;
+     <ul>
+<li>&lt;bureaucrat&gt; represents a W3C bureaucrat
+           (zero or more).
+<p>
+
+        A bureaucrat contains the following elements, in order.
+        <ul>
+<li>&lt;name&gt; its name (mandatory, string).</li>
+<li>&lt;surname&gt; its surname (mandatory, string).</li>
+<li>&lt;honest&gt; present iff he implemented one of its spec 
+               (optional, empty).</li>
+<li>&lt;obfuscation_level&gt; its grade on the
+               open scale of obfuscation (mandatory, float).</li>
+<li>&lt;tr&gt; (zero or more, string), technical reports he
+               worked on.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<p>
+
+    In OCaml we represent a W3C bureaucrat by this type :
+<pre class="codepre"><code class="code"><span class="keyword">type</span>&nbsp;w3c_bureaucrat&nbsp;=&nbsp;{&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;name&nbsp;:&nbsp;string;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;surname&nbsp;:&nbsp;string;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;honest&nbsp;:&nbsp;bool;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;obfuscation_level&nbsp;:&nbsp;float;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;trs&nbsp;:&nbsp;string&nbsp;list;&nbsp;}</code></pre>
+    The following functions input and output W3C bureaucrats as lists
+    of values of type <code class="code">w3c_bureaucrat</code>.
+<pre class="codepre"><code class="code"><span class="keyword">let</span>&nbsp;in_w3c_bureaucrats&nbsp;src&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;i&nbsp;=&nbsp;<span class="constructor">Xmlm</span>.make_input&nbsp;~strip:<span class="keyword">true</span>&nbsp;src&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;tag&nbsp;n&nbsp;=&nbsp;(<span class="string">""</span>,&nbsp;n),&nbsp;[]&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;error&nbsp;()&nbsp;=&nbsp;invalid_arg&nbsp;<span class="string">"parse&nbsp;error"</span>&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;accept&nbsp;s&nbsp;i&nbsp;=&nbsp;<span class="keyword">if</span>&nbsp;<span class="constructor">Xmlm</span>.input&nbsp;i&nbsp;=&nbsp;s&nbsp;<span class="keyword">then</span>&nbsp;()&nbsp;<span class="keyword">else</span>&nbsp;error&nbsp;()&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;<span class="keyword">rec</span>&nbsp;i_seq&nbsp;el&nbsp;acc&nbsp;i&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;<span class="constructor">Xmlm</span>.peek&nbsp;i&nbsp;<span class="keyword">with</span>&nbsp;<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;i_seq&nbsp;el&nbsp;((el&nbsp;i)&nbsp;::&nbsp;acc)&nbsp;i<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">El_end</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">List</span>.rev&nbsp;acc<br>
+&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;error&nbsp;()<br>
+&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;i_el&nbsp;n&nbsp;i&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;accept&nbsp;(<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;(tag&nbsp;n))&nbsp;i;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;d&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;<span class="constructor">Xmlm</span>.peek&nbsp;i&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">Data</span>&nbsp;d&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;ignore&nbsp;(<span class="constructor">Xmlm</span>.input&nbsp;i);&nbsp;d<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">El_end</span>&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="string">""</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;error&nbsp;()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;accept&nbsp;(<span class="keywordsign">`</span><span class="constructor">El_end</span>)&nbsp;i;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;d<br>
+&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;i_bureaucrat&nbsp;i&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">try</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;accept&nbsp;(<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;(tag&nbsp;<span class="string">"bureaucrat"</span>))&nbsp;i;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;name&nbsp;=&nbsp;i_el&nbsp;<span class="string">"name"</span>&nbsp;i&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;surname&nbsp;=&nbsp;i_el&nbsp;<span class="string">"surname"</span>&nbsp;i&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;honest&nbsp;=&nbsp;<span class="keyword">match</span>&nbsp;<span class="constructor">Xmlm</span>.peek&nbsp;i&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;((<span class="string">""</span>,&nbsp;<span class="string">"honest"</span>),&nbsp;[])&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;ignore&nbsp;(i_el&nbsp;<span class="string">"honest"</span>&nbsp;i);&nbsp;<span class="keyword">true</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keyword">false</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;obf&nbsp;=&nbsp;float_of_string&nbsp;(i_el&nbsp;<span class="string">"obfuscation_level"</span>&nbsp;i)&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;trs&nbsp;=&nbsp;i_seq&nbsp;(i_el&nbsp;<span class="string">"tr"</span>)&nbsp;[]&nbsp;i&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;accept&nbsp;(<span class="keywordsign">`</span><span class="constructor">El_end</span>)&nbsp;i;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{&nbsp;name&nbsp;=&nbsp;name;&nbsp;surname&nbsp;=&nbsp;surname;&nbsp;honest&nbsp;=&nbsp;honest;&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;obfuscation_level&nbsp;=&nbsp;obf;&nbsp;trs&nbsp;=&nbsp;trs&nbsp;}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">with</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Failure</span>&nbsp;_&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;error&nbsp;()&nbsp;<span class="comment">(*&nbsp;float_of_string&nbsp;*)</span><br>
+&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;accept&nbsp;(<span class="keywordsign">`</span><span class="constructor">Dtd</span>&nbsp;<span class="constructor">None</span>)&nbsp;i;<br>
+&nbsp;&nbsp;accept&nbsp;(<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;(tag&nbsp;<span class="string">"list"</span>))&nbsp;i;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;bl&nbsp;=&nbsp;i_seq&nbsp;i_bureaucrat&nbsp;[]&nbsp;i&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;accept&nbsp;(<span class="keywordsign">`</span><span class="constructor">El_end</span>)&nbsp;i;<br>
+&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;not&nbsp;(<span class="constructor">Xmlm</span>.eoi&nbsp;i)&nbsp;<span class="keyword">then</span>&nbsp;invalid_arg&nbsp;<span class="string">"more&nbsp;than&nbsp;one&nbsp;document"</span>;<br>
+&nbsp;&nbsp;bl<br>
+<br>
+<span class="keyword">let</span>&nbsp;out_w3c_bureaucrats&nbsp;dst&nbsp;bl&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;tag&nbsp;n&nbsp;=&nbsp;(<span class="string">""</span>,&nbsp;n),&nbsp;[]&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;o&nbsp;=&nbsp;<span class="constructor">Xmlm</span>.make_output&nbsp;~nl:<span class="keyword">true</span>&nbsp;~indent:(<span class="constructor">Some</span>&nbsp;2)&nbsp;dst&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;out&nbsp;=&nbsp;<span class="constructor">Xmlm</span>.output&nbsp;o&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;o_el&nbsp;n&nbsp;d&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;out&nbsp;(<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;(tag&nbsp;n));&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;d&nbsp;&lt;&gt;&nbsp;<span class="string">""</span>&nbsp;<span class="keyword">then</span>&nbsp;out&nbsp;(<span class="keywordsign">`</span><span class="constructor">Data</span>&nbsp;d);&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;out&nbsp;<span class="keywordsign">`</span><span class="constructor">El_end</span>&nbsp;<br>
+&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;<span class="keyword">let</span>&nbsp;o_bureaucrat&nbsp;b&nbsp;=&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;out&nbsp;(<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;(tag&nbsp;<span class="string">"bureaucrat"</span>));<br>
+&nbsp;&nbsp;&nbsp;&nbsp;o_el&nbsp;<span class="string">"name"</span>&nbsp;b.name;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;o_el&nbsp;<span class="string">"surname"</span>&nbsp;b.surname;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">if</span>&nbsp;b.honest&nbsp;<span class="keyword">then</span>&nbsp;o_el&nbsp;<span class="string">"honest"</span>&nbsp;<span class="string">""</span>;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;o_el&nbsp;<span class="string">"obfuscation_level"</span>&nbsp;(string_of_float&nbsp;b.obfuscation_level);<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">List</span>.iter&nbsp;(o_el&nbsp;<span class="string">"tr"</span>)&nbsp;b.trs;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;out&nbsp;<span class="keywordsign">`</span><span class="constructor">El_end</span><br>
+&nbsp;&nbsp;<span class="keyword">in</span><br>
+&nbsp;&nbsp;out&nbsp;(<span class="keywordsign">`</span><span class="constructor">Dtd</span>&nbsp;<span class="constructor">None</span>);<br>
+&nbsp;&nbsp;out&nbsp;(<span class="keywordsign">`</span><span class="constructor">El_start</span>&nbsp;(tag&nbsp;<span class="string">"list"</span>));<br>
+&nbsp;&nbsp;<span class="constructor">List</span>.iter&nbsp;o_bureaucrat&nbsp;bl;<br>
+&nbsp;&nbsp;out&nbsp;(<span class="keywordsign">`</span><span class="constructor">El_end</span>)</code></pre><br>
+</body></html>

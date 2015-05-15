@@ -1,0 +1,219 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Xmlm" rel="Chapter" href="Xmlm.html"><title>Index of values</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;</div>
+<h1>Index of values</h1>
+<table>
+<tr><td align="left"><br>A</td></tr>
+<tr><td><a href="Xmlm.Buffer.html#VALadd_uchar">add_uchar</a> [<a href="Xmlm.Buffer.html">Xmlm.Buffer</a>]</td>
+<td><div class="info">
+Adds the given (guaranteed valid) unicode
+      <a href="http://www.unicode.org/glossary/#code_point">code point</a> to a
+      buffer.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.String.html#VALappend">append</a> [<a href="Xmlm.String.html">Xmlm.String</a>]</td>
+<td><div class="info">
+Concatenates two strings.
+</div>
+</td></tr>
+<tr><td align="left"><br>C</td></tr>
+<tr><td><a href="Xmlm.Buffer.html#VALclear">clear</a> [<a href="Xmlm.Buffer.html">Xmlm.Buffer</a>]</td>
+<td><div class="info">
+Clears the buffer.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.String.html#VALcompare">compare</a> [<a href="Xmlm.String.html">Xmlm.String</a>]</td>
+<td><div class="info">
+String comparison.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.Buffer.html#VALcontents">contents</a> [<a href="Xmlm.Buffer.html">Xmlm.Buffer</a>]</td>
+<td><div class="info">
+Returns the buffer contents.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.Buffer.html#VALcreate">create</a> [<a href="Xmlm.Buffer.html">Xmlm.Buffer</a>]</td>
+<td><div class="info">
+Creates a buffer of the given size.
+</div>
+</td></tr>
+<tr><td align="left"><br>E</td></tr>
+<tr><td><a href="Xmlm.String.html#VALempty">empty</a> [<a href="Xmlm.String.html">Xmlm.String</a>]</td>
+<td><div class="info">
+The empty string.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.S.html#VALeoi">eoi</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALeoi">eoi</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Returns <code class="code"><span class="keyword">true</span></code> if the end of input is reached.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.S.html#VALerror_message">error_message</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALerror_message">error_message</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Converts the error to an english error message.
+</div>
+</td></tr>
+<tr><td align="left"><br>I</td></tr>
+<tr><td><a href="Xmlm.S.html#VALinput">input</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALinput">input</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Inputs a signal.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.S.html#VALinput_doc_tree">input_doc_tree</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALinput_doc_tree">input_doc_tree</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Same as <a href="Xmlm.html#VALinput_tree"><code class="code"><span class="constructor">Xmlm</span>.input_tree</code></a> but reads a complete <a href="Xmlm.html#TYPEsignal">well-formed</a>  
+    sequence of signals.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.S.html#VALinput_tree">input_tree</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALinput_tree">input_tree</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+If the next signal is a :
+     <code class="code"><span class="keywordsign">`</span><span class="constructor">Data</span></code> signal, inputs it and invokes <code class="code">data</code> with the character data., <code class="code"><span class="keywordsign">`</span><span class="constructor">El_start</span></code> signal, inputs the sequence of signals until its 
+       matching <code class="code"><span class="keywordsign">`</span><span class="constructor">El_end</span></code> and invokes <code class="code">el</code> and <code class="code">data</code> as follows
+     <code class="code">el</code>, is called on each <code class="code"><span class="keywordsign">`</span><span class="constructor">El_end</span></code> signals with the corresponding 
+      <code class="code"><span class="keywordsign">`</span><span class="constructor">El_start</span></code> tag and the result of the callback invocation for the 
+      element's children., <code class="code">data</code>, is called on each <code class="code"><span class="keywordsign">`</span><span class="constructor">Data</span></code> signals with the character data. 
+      This function won't be called twice consecutively or with the empty 
+      string., Other signals, raises <code class="code"><span class="constructor">Invalid_argument</span></code>.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.String.html#VALiter">iter</a> [<a href="Xmlm.String.html">Xmlm.String</a>]</td>
+<td><div class="info">
+Iterates over the unicode 
+      <a href="http://www.unicode.org/glossary/#code_point">code point</a>
+      of the given string.
+</div>
+</td></tr>
+<tr><td align="left"><br>L</td></tr>
+<tr><td><a href="Xmlm.Buffer.html#VALlength">length</a> [<a href="Xmlm.Buffer.html">Xmlm.Buffer</a>]</td>
+<td><div class="info">
+Returns the number of characters contained in the buffer.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.String.html#VALlength">length</a> [<a href="Xmlm.String.html">Xmlm.String</a>]</td>
+<td><div class="info">
+Returns the length of the string.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.String.html#VALlowercase">lowercase</a> [<a href="Xmlm.String.html">Xmlm.String</a>]</td>
+<td><div class="info">
+New string with uppercase letter translated
+      to lowercase (correctness is only needed for ASCII
+      <a href="http://www.unicode.org/glossary/#code_point">code point</a>).
+</div>
+</td></tr>
+<tr><td align="left"><br>M</td></tr>
+<tr><td><a href="Xmlm.S.html#VALmake_input">make_input</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALmake_input">make_input</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Returns a new input abstraction reading from the given source.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.S.html#VALmake_output">make_output</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALmake_output">make_output</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Returns a new output abstraction writing to the given destination.
+</div>
+</td></tr>
+<tr><td align="left"><br>N</td></tr>
+<tr><td><a href="Xmlm.S.html#VALns_xml">ns_xml</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALns_xml">ns_xml</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Namespace name <a href="http://www.w3.org/XML/1998/namespace">value</a> bound to the 
+    reserved <code class="code"><span class="string">"xml"</span></code> prefix.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.S.html#VALns_xmlns">ns_xmlns</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALns_xmlns">ns_xmlns</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Namespace name <a href="http://www.w3.org/2000/xmlns/">value</a> bound to the 
+    reserved <code class="code"><span class="string">"xmlns"</span></code> prefix.
+</div>
+</td></tr>
+<tr><td align="left"><br>O</td></tr>
+<tr><td><a href="Xmlm.String.html#VALof_string">of_string</a> [<a href="Xmlm.String.html">Xmlm.String</a>]</td>
+<td><div class="info">
+String from an OCaml string.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.S.html#VALoutput">output</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALoutput">output</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Outputs a signal.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.S.html#VALoutput_depth">output_depth</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALoutput_depth">output_depth</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+<code class="code">output_depth o</code> is <code class="code">o</code>'s current element nesting level (undefined
+    before the first <code class="code"><span class="keywordsign">`</span><span class="constructor">El_start</span></code> and after the last <code class="code"><span class="keywordsign">`</span><span class="constructor">El_end</span></code>).
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.S.html#VALoutput_doc_tree">output_doc_tree</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALoutput_doc_tree">output_doc_tree</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Same as <a href="Xmlm.html#VALoutput_tree"><code class="code"><span class="constructor">Xmlm</span>.output_tree</code></a> but outputs a complete <a href="Xmlm.html#TYPEsignal">well-formed</a> 
+    sequence of signals.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.S.html#VALoutput_tree">output_tree</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALoutput_tree">output_tree</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Outputs signals corresponding to a value by recursively
+    applying the given value deconstructor.
+</div>
+</td></tr>
+<tr><td align="left"><br>P</td></tr>
+<tr><td><a href="Xmlm.S.html#VALpeek">peek</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALpeek">peek</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Same as <a href="Xmlm.html#VALinput"><code class="code"><span class="constructor">Xmlm</span>.input</code></a> but doesn't remove the signal from the sequence.
+</div>
+</td></tr>
+<tr><td><a href="Xmlm.S.html#VALpos">pos</a> [<a href="Xmlm.S.html">Xmlm.S</a>]</td>
+<td></td></tr>
+<tr><td><a href="Xmlm.html#VALpos">pos</a> [<a href="Xmlm.html">Xmlm</a>]</td>
+<td><div class="info">
+Current position in the input abstraction.
+</div>
+</td></tr>
+<tr><td align="left"><br>T</td></tr>
+<tr><td><a href="Xmlm.String.html#VALto_utf_8">to_utf_8</a> [<a href="Xmlm.String.html">Xmlm.String</a>]</td>
+<td><div class="info">
+<code class="code">to_utf_8 f v s</code>, is <code class="code">f (... (f (f v s1) s2) ...) sn</code>.
+</div>
+</td></tr>
+</table>
+</body>
+</html>

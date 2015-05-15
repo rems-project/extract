@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Xmlm.String.html">
+<link rel="next" href="Xmlm.S.html">
+<link rel="Up" href="Xmlm.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Xmlm" rel="Chapter" href="Xmlm.html"><title>Xmlm.Buffer</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Xmlm.String.html" title="Xmlm.String">Previous</a>
+&nbsp;<a class="up" href="Xmlm.html" title="Xmlm">Up</a>
+&nbsp;<a class="post" href="Xmlm.S.html" title="Xmlm.S">Next</a>
+</div>
+<h1>Module type <a href="type_Xmlm.Buffer.html">Xmlm.Buffer</a></h1>
+<pre><span class="keyword">module type</span> Buffer = <code class="code"><span class="keyword">sig</span></code> <a href="Xmlm.Buffer.html">..</a> <code class="code"><span class="keyword">end</span></code></pre><div class="info">
+Input signature for internal buffers.<br>
+</div>
+<hr width="100%">
+<pre><span id="TYPEstring"><span class="keyword">type</span> <code class="type"></code>string</span> </pre>
+<div class="info">
+The type for strings.<br>
+</div>
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
+<div class="info">
+The type for buffers.<br>
+</div>
+
+<pre><span id="EXCEPTIONFull"><span class="keyword">exception</span> Full</span></pre>
+<div class="info">
+Raised if the buffer cannot be grown.<br>
+</div>
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">int -> <a href="Xmlm.Buffer.html#TYPEt">t</a></code></pre><div class="info">
+Creates a buffer of the given size.<br>
+</div>
+<pre><span id="VALadd_uchar"><span class="keyword">val</span> add_uchar</span> : <code class="type"><a href="Xmlm.Buffer.html#TYPEt">t</a> -> int -> unit</code></pre><div class="info">
+Adds the given (guaranteed valid) unicode
+      <a href="http://www.unicode.org/glossary/#code_point">code point</a> to a
+      buffer. 
+<p>
+
+      <b>Raises</b> <a href="Xmlm.Buffer.html#EXCEPTIONFull"><code class="code"><span class="constructor">Xmlm</span>.<span class="constructor">Buffer</span>.<span class="constructor">Full</span></code></a> if the buffer cannot be grown.<br>
+</div>
+<pre><span id="VALclear"><span class="keyword">val</span> clear</span> : <code class="type"><a href="Xmlm.Buffer.html#TYPEt">t</a> -> unit</code></pre><div class="info">
+Clears the buffer.<br>
+</div>
+<pre><span id="VALcontents"><span class="keyword">val</span> contents</span> : <code class="type"><a href="Xmlm.Buffer.html#TYPEt">t</a> -> <a href="Xmlm.Buffer.html#TYPEstring">string</a></code></pre><div class="info">
+Returns the buffer contents.<br>
+</div>
+<pre><span id="VALlength"><span class="keyword">val</span> length</span> : <code class="type"><a href="Xmlm.Buffer.html#TYPEt">t</a> -> int</code></pre><div class="info">
+Returns the number of characters contained in the buffer.<br>
+</div>
+</body></html>
