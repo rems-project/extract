@@ -348,7 +348,7 @@ let gen_trans_sail map i =
               | "setaa" -> Printf.sprintf "(trans_aa %s)" fld
               | "setlk" -> Printf.sprintf "(trans_lk %s)" fld
               | _ -> fld in
-            Printf.sprintf "(\"%s\", IInt.Bit, IImp.num_to_bits 1 IInt.Bitv (Nat_big_num.big_int_of_int %s))" n conv_fld
+            Printf.sprintf "(\"%s\", IInt.Bit, IImp.num_to_bits 1 IInt.Bitv (Nat_big_num.of_int %s))" n conv_fld
         | (BinRep.Ifield (n,(_,sz))) ->
             let fld = 
               try List.nth fps (find_param_num idx) 
@@ -359,10 +359,10 @@ let gen_trans_sail map i =
             in
             let ifield = List.nth i.ifields idx in
             if is_imm ifield map 
-            then Printf.sprintf "(\"%s\", IInt.Bvector (Some %d), IImp.num_to_bits %d IInt.Bitv (Nat_big_num.big_int_of_int %s))" 
+            then Printf.sprintf "(\"%s\", IInt.Bvector (Some %d), IImp.num_to_bits %d IInt.Bitv (Nat_big_num.of_int %s))" 
                 n sz sz fld
                 (* for registers *)
-            else Printf.sprintf "(\"%s\", IInt.Bvector (Some 5), IImp.num_to_bits 5 IInt.Bitv (Nat_big_num.big_int_of_int (int_of_reg %s)))" 
+            else Printf.sprintf "(\"%s\", IInt.Bvector (Some 5), IImp.num_to_bits 5 IInt.Bitv (Nat_big_num.of_int (int_of_reg %s)))" 
                 n fld
             
         | _ -> Printf.eprintf "what type?\n"; assert false)
