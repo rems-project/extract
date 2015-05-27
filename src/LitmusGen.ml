@@ -90,6 +90,8 @@ let field_to_pp map (_, f) =
   else Printf.sprintf "(pp_reg %s)" (field_to_var f)
 
 let field_to_ppformat f map =
+  (* special cases - see comments in field_to_parse above for details *)
+  if f = "BF" then "%s" else if f = "DS" then "%s" else
   if is_imm f map then "%d" else "%s"
 
 let make_flag_name flag = match flag with
