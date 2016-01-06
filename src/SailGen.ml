@@ -439,7 +439,7 @@ let make_decode name binrep ifields =
         [pos; pos'])
     | _ -> assert false
     ) ifields in
-  let decode_exp = exp_app name decode_extract in
+  let decode_exp = exp_app "Some" [(exp_app name decode_extract)] in
   scattered_funcl "decode" (pat_as (pat_vector_concat decode_pat) "instr") decode_exp
 
 
