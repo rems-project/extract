@@ -128,6 +128,11 @@ let to_trans_sail map chan i =
   let trans_frag = LG.gen_trans_sail (map i) i in
   Printf.fprintf chan "%s\n" trans_frag
 
+(** Translate from Sail instructions back to litmus data *)
+let to_trans_out_sail map chan i =
+  let trans_frag = LG.gen_sail_trans_out (map i) i in
+  Printf.fprintf chan "%s\n" trans_frag
+
 (** Generate all boilerplate files for Litmus *)
 let gen_litmus gendir instrs map =
   with_file instrs (gendir^"/ast.gen") (to_ast map);
@@ -138,7 +143,8 @@ let gen_litmus gendir instrs map =
   with_file instrs (gendir^"/fold.gen") (generic_make map LG.gen_fold);
   with_file instrs (gendir^"/map.gen") (generic_make map LG.gen_map);
   with_file instrs (gendir^"/compile.gen") (generic_make map LG.gen_compile);
-  with_file instrs (gendir^"/trans_sail.gen") (to_trans_sail map)
+  with_file instrs (gendir^"/trans_sail.gen") (to_trans_sail map);
+  with_file instrs (gendir^"/sail_trans_out.gen") (to_trans_out_sail map)
 
 (** {2 Glue everything together} *)
 

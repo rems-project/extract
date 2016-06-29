@@ -373,7 +373,6 @@ let gen_trans_sail map i =
     then String.capitalize ((List.hd i.mnemonics).Mnemo.name ^ "Dot")
     else String.capitalize (List.hd i.mnemonics).Mnemo.name
   in
-
   (* printing it all out *)
 
   (* 1. the instruction name *)
@@ -396,3 +395,121 @@ let gen_trans_sail map i =
   (* 3.3. The list of "base effects", always empty for litmus *)
   "       [(* always empty base effects*)]\n" ^
   "      )"
+
+let gen_sail_trans_out map i = 
+  if i.mnemonics = [] then failwith i.name;
+  let m = List.hd i.mnemonics in (* hoping those are same, checked elsewhere *)
+
+  (* hmm, the mnemonics and the decoded instruction have 
+     flags and parameters in different orders and with different names and combinations *)
+
+  (*First the decoded information*)
+  let instr_fields = List.filter (function BinRep.Ifield _ -> true | _ -> false)
+      (List.sort BinRep.compare_pos i.repr) in
+  
+  (* Then setup the mnemonic way, although we won't use these names directly *)
+  let flags_params = gen_ast_frag map m in
+  (* add arg number to disambiguate *)
+  let fps = List.mapi (fun i f -> Printf.sprintf "%s%d" f i, i) flags_params in 
+  
+  (* then a function to convert a decoded field in that kind of list *)
+  let find_param_num n =
+    let ifield = String.lowercase (List.nth i.ifields n) in
+    let raw_flag_params = 
+      (List.map fst m.Mnemo.flags) @ (List.map snd m.Mnemo.params) in
+    let rec find_pos_in_lst look_for n lst =
+      match lst with
+      | [] -> begin Printf.eprintf "%s:Did not find %s\n" m.name ifield;
+          List.iter (Printf.eprintf "%s; ") raw_flag_params;
+          Printf.eprintf "\n"; raise Not_found end
+      | h :: l -> 
+          if look_for = (String.lowercase h) 
+          then n else find_pos_in_lst look_for (n+1) l
+    in
+    find_pos_in_lst ifield 0 raw_flag_params in
+
+  (* Now we can generate the function to convert parameters, has conversion information in decode format 
+     So we'll attach the position of the mneumonic from fps with the conversion call in one tuple
+     and with the name for the instruction pattern in a tuple so (pat_name, (mneumonic_pos,conversion call)) list
+  *)
+
+  let ocamlify_names n =
+    match n with
+    | "TO" | "to" -> "to_"
+    | _ -> String.lowercase n in
+  
+  let param_names = List.map (fun f -> match f with
+      | BinRep.Ifield (n,_) -> ocamlify_names n
+      | _ -> failwith "What type?") instr_fields in
+  
+  let names_translations =
+    List.mapi
+      (fun idx f -> match f with
+         | (BinRep.Ifield (n,(_,1))) ->
+           let n = ocamlify_names n in
+           let ((tmi,mi),use_tmi) = 
+             try (List.nth fps (find_param_num idx), false)
+             with Not_found -> 
+               (Printf.sprintf "(trans_out_%s_%s%i " (String.lowercase (List.nth i.ifields idx))
+                  (String.concat "_" flags_params) (List.length param_names) ^
+                (String.concat " " param_names) ^ 
+                ")", (List.length fps)), true
+            in
+            let field_name = try List.nth flags_params (find_param_num idx) 
+            with Not_found -> "PLACEHOLDER" in
+            let conv_fld =
+              match field_name with
+              | "setcr0" -> Printf.sprintf "(trans_out_cr0 %s)" (if use_tmi then tmi else n) 
+              | "setsoov" -> Printf.sprintf "(trans_out_soov %s)" (if use_tmi then tmi else n)
+              | "setaa" -> Printf.sprintf "(trans_out_aa %s)" (if use_tmi then tmi else n)
+              | "setlk" -> Printf.sprintf "(trans_out_lk %s)" (if use_tmi then tmi else n)
+              | _ -> Printf.sprintf "(trans_out_int %s)" (if use_tmi then tmi else n) in
+            (n,(mi,Printf.sprintf "%s" conv_fld))
+         | (BinRep.Ifield (n,(_,sz))) ->
+           let n = ocamlify_names n in
+            let ((tmi,mi),use_tmi) = 
+              try (List.nth fps (find_param_num idx)), false
+              with Not_found -> 
+                (Printf.sprintf "(trans_out_%s_%s%i " (String.lowercase (List.nth i.ifields idx))
+                   (String.concat "_" flags_params) (List.length param_names) ^ (String.concat " " param_names) ^ 
+                 ")", List.length fps), true
+            in
+            let ifield = List.nth i.ifields idx in
+            if is_imm ifield map 
+            then (n,(mi,Printf.sprintf "(trans_out_int %s)" (if use_tmi then tmi else n)))
+            (* for registers *)
+            else (n,(mi,Printf.sprintf "(trans_out_reg %s)" (if use_tmi then tmi else n)))            
+        | _ -> Printf.eprintf "what type?\n"; assert false)
+     instr_fields in      
+  (*arguments now in decode order*)
+  let instr_params = List.map fst names_translations in
+  (*conversions now in mneumonic order*)
+  let mn_conv = (List.map snd (List.sort (fun (i1,_) (i2,_) -> compare i1 i2) (List.map snd names_translations))) in
+  let sailname = (* special case for addicdot *)
+    if ((List.hd i.mnemonics).Mnemo.name = "addic") && ((List.hd i.mnemonics).Mnemo.dot) 
+    then String.capitalize ((List.hd i.mnemonics).Mnemo.name ^ "Dot")
+    else String.capitalize (List.hd i.mnemonics).Mnemo.name
+  in
+
+  (* printing it all out *)
+
+  (* 1. the instruction name *)
+  Printf.sprintf "  | (\"%s\", [" sailname ^
+
+  (*So I need to get the decode order here instead*)
+  (* 2. the arguments (in mnemonic, aka litmus order) *)
+  (match instr_params with
+  | [] -> ""
+  | ips -> String.concat "; " ips) ^
+
+  (* 3. now for the conversion *)
+  "], _) -> \n" ^
+
+  (* 3.1. The ppcgen name *)
+  Printf.sprintf "      %s%s" (gen_constr m) 
+
+    (* 3.2. The field conversions *)
+    (match mn_conv with
+     | [] -> "\n"
+     | _ -> 
+       ("(\n       " ^ (String.concat ",\n        " mn_conv) ^ ")"))

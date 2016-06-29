@@ -31,3 +31,6 @@ val gen_compile : (string * Footprint.ifield_type) list -> Mnemo.t -> string
 
 (** Translation to Lem-generated-OCaml type of Sail-generated-Lem instructions *)
 val gen_trans_sail : (string * Footprint.ifield_type) list -> Instruction.t -> string
+
+(** Translation from Lem-generated-Ocaml type of Sail-generated-Lem instructions to Ocaml *)
+val gen_sail_trans_out : (string * Footprint.ifield_type) list -> Instruction.t -> string
