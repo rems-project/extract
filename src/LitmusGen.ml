@@ -326,7 +326,7 @@ let gen_trans_sail map i =
     find_pos_in_lst ifield 0 raw_flag_params in
 
   (* Now we can generate the function to convert parameters *)
-  let fields = List.filter (function BinRep.Ifield _ -> true | _ -> false) 
+  let fields = List.filter (function BinRep.Ifield _ | BinRep.SplitIfield _ -> true | _ -> false) 
       (List.sort BinRep.compare_pos i.repr) in
   let pp_fields =
     List.mapi
@@ -364,7 +364,18 @@ let gen_trans_sail map i =
                 (* for registers *)
             else Printf.sprintf "(\"%s\", IInt.Bvector (Some 5), IImp.num_to_bits 5 IInt.Bitv (Nat_big_num.of_int (int_of_reg %s)))" 
                 n fld
-            
+        | (BinRep.SplitIfield (n,(_,sz1),(_,sz2))) ->
+            let fld = 
+              try List.nth fps (find_param_num idx) 
+              with Not_found -> 
+                Printf.sprintf "(trans_%s_%s " (String.lowercase (List.nth i.ifields idx)) (String.concat "_" flags_params) ^
+                (String.concat " " fps) ^ 
+                ")"
+            in
+            let sz = sz1 + sz2 in
+            Printf.sprintf "(\"%s\", IInt.Bvector (Some %d), IImp.num_to_bits %d IInt.Bitv (Nat_big_num.of_int %s))" 
+                n sz sz fld
+
         | _ -> Printf.eprintf "what type?\n"; assert false)
      fields in      
 
@@ -404,7 +415,7 @@ let gen_sail_trans_out map i =
      flags and parameters in different orders and with different names and combinations *)
 
   (*First the decoded information*)
-  let instr_fields = List.filter (function BinRep.Ifield _ -> true | _ -> false)
+  let instr_fields = List.filter (function BinRep.Ifield _ | BinRep.SplitIfield _ -> true | _ -> false)
       (List.sort BinRep.compare_pos i.repr) in
   
   (* Then setup the mnemonic way, although we won't use these names directly *)
@@ -439,7 +450,7 @@ let gen_sail_trans_out map i =
     | _ -> String.lowercase n in
   
   let param_names = List.map (fun f -> match f with
-      | BinRep.Ifield (n,_) -> ocamlify_names n
+      | BinRep.Ifield (n,_) | BinRep.SplitIfield (n,_,_) -> ocamlify_names n
       | _ -> failwith "What type?") instr_fields in
   
   let names_translations =
@@ -479,6 +490,16 @@ let gen_sail_trans_out map i =
             then (n,(mi,Printf.sprintf "(trans_out_int %s)" (if use_tmi then tmi else n)))
             (* for registers *)
             else (n,(mi,Printf.sprintf "(trans_out_reg %s)" (if use_tmi then tmi else n)))            
+        | (BinRep.SplitIfield (n,(_,sz1),(_,sz2))) ->
+           let n = ocamlify_names n in
+           let ((tmi,mi),use_tmi) = 
+              try (List.nth fps (find_param_num idx)), false
+              with Not_found -> 
+                (Printf.sprintf "(trans_out_%s_%s%i " (String.lowercase (List.nth i.ifields idx))
+                   (String.concat "_" flags_params) (List.length param_names) ^ (String.concat " " param_names) ^ 
+                 ")", List.length fps), true
+            in
+            (n,(mi,Printf.sprintf "(trans_out_int %s)" (if use_tmi then tmi else n)))
         | _ -> Printf.eprintf "what type?\n"; assert false)
      instr_fields in      
   (*arguments now in decode order*)
