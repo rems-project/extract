@@ -443,12 +443,91 @@ let make_decode name binrep ifields =
   scattered_funcl "decode" (pat_as (pat_vector_concat decode_pat) "instr") decode_exp
 
 
+(* make memory stores explicitly announce the address before the actual memory
+  write *)
+let rewrite_store iname body = 
+  let open A in
+  (* insert y into xs after the nth element of xs for which p holds *)
+  let rec insert_after n p y xs = match xs with
+    | [] -> failwith "no element found satifying predicate"
+    | x :: xs ->
+       if p x then
+         if n = 1 then x :: y :: xs
+         else x :: insert_after (n - 1) p y xs
+       else x :: insert_after n p y xs in
+  let is_assignment_of vname = function
+    | E_aux (E_assign (LEXP_aux (LEXP_id (Id_aux (Id vname',_)),_),_),_)
+    | E_aux (E_assign (LEXP_aux (LEXP_cast (_,Id_aux (Id vname',_)),_),_),_) ->
+       vname = vname'
+    | _ -> false in
+  let is_recalculate_dependency = function
+    | E_aux (E_app (Id_aux (Id "recalculate_dependency",_),_),_) -> true
+    | _ -> false in
+  (* should be a fold for exp types, but this suffices *)
+  let rec find_memw_args exps = match exps with
+    | [] -> failwith "MEMw call not found"
+    | exp :: exps ->
+       match exp with
+       | E_aux (E_assign (LEXP_aux (LEXP_memory (Id_aux (Id _,_),args),_),_),_)
+       | E_aux (E_app (Id_aux (Id "MEMw",_),args),_)
+       | E_aux (E_app (Id_aux (Id "MEMw_conditional",_),args),_)
+       | E_aux (E_assign (_,(E_aux (E_app (Id_aux (Id "MEMw",_),args),_))),_)
+       | E_aux (E_assign (_,(E_aux (E_app (Id_aux (Id "MEMw_conditional",_),args),_))),_) ->
+          let arg1 :: arg2 :: _ = args in
+          [arg1;arg2]
+       | E_aux (E_if (_,exp1,exp2),_) ->
+          find_memw_args (exp1 :: exp2 :: exps)
+       | _ -> find_memw_args exps in
+
+  let announce_addr cond args =
+    exp_app (if cond then "MEMw_EA_cond" else "MEMw_EA") args in
+
+  match iname with
+  | "Stmw"
+  | "Stswi" -> 
+     (* insert memw_addr only after "size := ..." *)
+     let (E_aux (E_block exps,eannot)) = body in
+     let fp = find_memw_args exps in
+     let exps = insert_after 1 (is_assignment_of "size") (announce_addr false fp) exps in
+     E_aux (E_block exps,eannot)
+ | "Stswx" ->
+     (* insert after recalculate_dependency *)
+     let (E_aux (E_block exps,eannot)) = body in
+     let fp = find_memw_args exps in
+     let exps = insert_after 1 is_recalculate_dependency (announce_addr false fp) exps in
+     E_aux (E_block exps,eannot)
+  (* normal stores *)
+  | "Stb" | "Stbx" | "Stbu" | "Stbux"
+  | "Sth" | "Sthx" | "Sthu" | "Sthux"
+  | "Stw" | "Stwx" | "Stwu" | "Stwux"
+  | "Std" | "Stdx" | "Stdu" | "Stdux"
+  | "Stq"
+  | "Sthbrx" | "Stwbrx" | "Stdbrx" ->
+     (* insert mem_addr after "EA := ...", and return arguments of
+        MEMw/MEMw_conditional *)
+     let (E_aux (E_block exps,eannot)) = body in
+     let fp = find_memw_args exps in
+     let exps = insert_after 2 (is_assignment_of "EA") (announce_addr false fp) exps in
+     E_aux (E_block exps,eannot)
+  (* store conditionals *) 
+  | "Stbcx"  | "Sthcx" | "Stwcx" | "Stdcx" ->
+     (* insert mem_addr after "EA := ...", and return arguments of
+        MEMw/MEMw_conditional *)
+     let (E_aux (E_block exps,eannot)) = body in
+     let fp = find_memw_args exps in
+     let exps = insert_after 2 (is_assignment_of "EA") (announce_addr true fp) exps in
+     E_aux (E_block exps,eannot)
+  | _ -> body
+                  
+
 let make_execute name ifields block patch = 
   let ifields_pat = List.map (function
       BinRep.Ifield (name, _) | BinRep.SplitIfield (name, _, _) -> pat_id name
     | _ -> assert false) ifields in
   let body = block_to_sail block in
-  scattered_funcl "execute" (pat_app name ifields_pat) (patch body)
+  let body' = patch body in
+  let body'' = rewrite_store name body' in
+  scattered_funcl "execute" (pat_app name ifields_pat) body''
 
 let make_instr name binrep block patch =
   let ifields = List.filter BinRep.(function Ifield _ | SplitIfield _ -> true | _ -> false) binrep in
