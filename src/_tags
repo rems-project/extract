@@ -1,4 +1,3 @@
-<*>: debug, use_sail
-<xmlm-1.2.0/src>: include
+<*>: debug, use_sail, package(xmlm)
 <*.native>: use_xmlm, use_str, use_unix, use_nums
 <split.ml>: warn_p
