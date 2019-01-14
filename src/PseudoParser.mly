@@ -10,9 +10,8 @@ let make_sup n expr = match expr with
 let make_exp n m =
   if n <> 2 then failwith (Printf.sprintf "unexpected exponentiation: %d^%d" n m)
   else
-  let s = String.make (m+1) '0' in
-  s.[0] <- '1';
-  Bitfield s
+  let s = String.make m '0' in
+  Bitfield ("1" ^ s)
 ;;
 
 let make_concat e1 e2 = match e1, e2 with
