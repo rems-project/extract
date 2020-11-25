@@ -7,7 +7,7 @@
  * function. *)
 val make_instr :
   Ast.x -> BinRep.t -> Pseudo.block -> 
-    (Type_internal.tannot Ast.exp -> Type_internal.tannot Ast.exp)
-    -> Type_internal.tannot Ast.defs
+    (Type_check.tannot Ast.exp -> Type_check.tannot Ast.exp)
+    -> Type_check.tannot Ast.defs
  
-val exp_block : Type_internal.tannot Ast.exp list -> Type_internal.tannot Ast.exp
+val exp_block : Type_check.tannot Ast.exp list -> Type_check.tannot Ast.exp

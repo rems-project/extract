@@ -45,5 +45,6 @@ val load_db : string -> db
 (** [get mnemo db] returns a function to patch the Sail code for the
  * instruction [mnemo]. If there is no patch for [mnemo] in database
  * [db], the identity function is returned. *)
-val get : string -> db -> (Type_internal.tannot Ast.exp -> Type_internal.tannot Ast.exp)
+(*val get : string -> db -> (Type_internal.tannot Ast.exp -> Type_internal.tannot Ast.exp)*)
+val get : string -> db -> (Type_check.tannot Ast.exp -> Type_check.tannot Ast.exp)
 
