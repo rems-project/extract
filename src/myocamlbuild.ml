@@ -2,7 +2,7 @@ open Ocamlbuild_plugin ;;
 open Pathname ;;
 
 
-let sail_dir = "../../../../github/sail" ;;
+let sail_dir = "../../../sail" ;;
 let sail_libdir = sail_dir / "/src/_build" ;;
 let sail_lib = sail_libdir / "/sail_lib" ;;
 
