@@ -109,7 +109,8 @@ module PA = Parse_ast
 
 (* location and type annotations *)
 let lunk = PA.Unknown
-let tunk = lunk, Type_internal.NoTyp
+(* WAS let tunk = lunk, Type_internal.NoTyp -- SS guessing at appropriate replacement *)
+let tunk = lunk, A.Typ_internal_unknown
 (* identifiers *)
 let id i = A.Id_aux (A.Id i, lunk)
 let deiid i = A.Id_aux (A.DeIid i, lunk)

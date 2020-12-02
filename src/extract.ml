@@ -69,7 +69,7 @@ let longAstNames = ref false
  * do currently (once in dump_instr and once directly). We might cache
  * the result in Instruction.t. *)
 let dump_sail patch_db chan i =
-  let print ast = Pretty_print_sail.pp_defs chan ast; output_char chan '\n' in
+  let print ast = Pretty_print_sail.pp_ast chan ast; output_char chan '\n' in
   let name = if !longAstNames then begin
       i.name
       |> Str.global_replace (Str.regexp_string "+") "Plus"
