@@ -113,7 +113,7 @@ let lunk = PA.Unknown
 let tunk = lunk, A.Typ_internal_unknown
 (* identifiers *)
 let id i = A.Id_aux (A.Id i, lunk)
-let deiid i = A.Id_aux (A.DeIid i, lunk)
+(* SS: not required? WAS let deiid i = A.Id_aux (A.DeIid i, lunk) *)
 (* n-expressions *)
 let nexp ne = A.Nexp_aux (ne, lunk)
 let nexp_const n = nexp (A.Nexp_constant n)
@@ -122,10 +122,10 @@ let ord o = A.Ord_aux (o, lunk)
 let ord_inc = ord A.Ord_inc
 let ord_dec = ord A.Ord_dec
 (* type arguments *)
-let typ_arg ta = A.Typ_arg_aux (ta, lunk)
-let typ_arg_nexp ne = typ_arg (A.Typ_arg_nexp ne)
-let typ_arg_ord o = typ_arg (A.Typ_arg_order o)
-let typ_arg_typ t = typ_arg (A.Typ_arg_typ t)
+let typ_arg ta = A.A_aux (ta, lunk) 
+let typ_arg_nexp ne = typ_arg (A.A_nexp ne)
+let typ_arg_ord o = typ_arg (A.A_order o)
+let typ_arg_typ t = typ_arg (A.A_typ t)
 (* types *)
 let typ t = A.Typ_aux (t, lunk)
 let typ_id i = typ (A.Typ_id (id i))
@@ -134,7 +134,7 @@ let typ_bit = typ_id "bit"
 let typ_unit = typ_id "unit"
 let typ_tup l = typ (A.Typ_tup l)
 let typ_bitvec ?(inc=true) ?(n=0) m = typ_app "vector" [
-    typ_arg_nexp (nexp_const n);
+    typ_arg_nexp (nexp_const (Big_int_Z.big_int_of_int n));
     typ_arg_nexp (nexp_const m);
     typ_arg_ord (if inc then ord_inc else ord_dec);
     typ_arg_typ typ_bit;
@@ -167,7 +167,7 @@ let rec exp_concat = function
   | [] -> assert false
   | [e] -> e
   | e::l -> exp_vec_append e (exp_concat l)
-let exp_int i = exp_lit (A.L_num i)
+let exp_int i = exp_lit (A.L_num (Big_int_Z.big_int_of_int i))
 (* patterns *)
 let pat p = A.P_aux (p, tunk)
 let pat_wild = pat (A.P_wild)
@@ -179,18 +179,18 @@ let pat_app i pl = pat (A.P_app (id i, pl))
 let pat_vector l = pat (A.P_vector l)
 let pat_vector_concat l = pat (A.P_vector_concat l)
 (* scattered definitions and related helpers *)
-let funcl i pat exp = A.FCL_aux (A.FCL_Funcl (id i, pat, exp), tunk)
-let scattered_funcl i pat exp = A.SD_scattered_funcl (funcl i pat exp)
+let funcl i pat exp = A.FCL_aux (A.FCL_Funcl (id i, A.Pat_aux(A.Pat_exp(pat, exp), tunk)), tunk)
+let scattered_funcl i pat exp = A.SD_funcl (funcl i pat exp)
 
 let scattered_unioncl i type_union =
-  A.SD_scattered_unioncl (id i, type_union)
+  A.SD_unioncl (id i, type_union)
 let type_union t = A.Tu_aux (t, lunk)
-let type_union_id i = type_union (A.Tu_id (id i))
+(* let type_union_id i = type_union (A.Tu_id (id i)) *)
 let type_union_ty_id typ i = type_union (A.Tu_ty_id (typ, id i))
 
 let scattered_def sd = A.SD_aux (sd, tunk)
 let def_scattered sd = A.DEF_scattered (scattered_def sd)
-let scattered_defs d = A.Defs (List.map def_scattered d)
+let scattered_defs d = {Ast_defs.defs = (List.map def_scattered d); Ast_defs.comments = []}
 
 (* those are useless currently - the header and footer for scattered
  * definitions are written manually in header.sail and footer.sail.
@@ -269,7 +269,7 @@ and expr_to_sail = function
   (* add cast for (e1 + n) mod m to resolve overloading ambiguity *)
   | Binop (Mod, Binop(op, e1, Int n), Int m) ->
     let inner_op =
-      exp_cast (typ_bitvec (disc_log m 2)) (exp_appi ((expr_to_sail e1)) (binop_to_string op) (exp_int n)) in
+      exp_cast (typ_bitvec (Big_int_Z.big_int_of_int (disc_log m 2))) (exp_appi ((expr_to_sail e1)) (binop_to_string op) (exp_int n)) in
     exp_appi inner_op (binop_to_string Mod) (exp_int m)
   | Binop (op, e1, e2) ->
     exp_appi (expr_to_sail e1) (binop_to_string op) (expr_to_sail e2)
@@ -324,10 +324,10 @@ let rec instr_to_sail = function
   (* special case: variable assignement with 0..2^n-1 range is always a
    * variable declaration in practice *)
   | Assign ((Var v, Some (Range(Int 0, Int ((31|63|127|255) as n)))), e, Regular) ->
-    exp_assign (lexp_cast (typ_bitvec (n+1)) v) (expr_to_sail e)
+    exp_assign (lexp_cast (typ_bitvec (Big_int_Z.big_int_of_int (n+1))) v) (expr_to_sail e)
   (* Help constraint inference *)
   | Assign ((l, Some (Range((Binop(Plus, e, Int n) as e1), (Binop(Plus, e', Int m) as e2)))), Int k, Regular) when e = e' ->
-      exp_assign (lexp_vec_range (lval_to_sail l) (expr_to_sail e1) (expr_to_sail e2)) (exp_cast (typ_bitvec (m-n+1)) (exp_int k))
+      exp_assign (lexp_vec_range (lval_to_sail l) (expr_to_sail e1) (expr_to_sail e2)) (exp_cast (typ_bitvec (Big_int_Z.big_int_of_int (m-n+1))) (exp_int k))
   (* XXX do address conversions for IEA *)
   | Assign ((l, None), e, (Regular|Iea)) ->
     exp_assign (lval_to_sail l) (expr_to_sail e)
@@ -383,12 +383,12 @@ and block_to_sail b =
 let make_ast name ifields =
   let field_type = function
   | BinRep.Ifield (_, (_, 1)) -> typ_bit
-  | BinRep.Ifield (_, (_, size)) -> typ_bitvec size
+  | BinRep.Ifield (_, (_, size)) -> typ_bitvec (Big_int_Z.big_int_of_int size)
   | BinRep.SplitIfield(_, (_, size), (_, size')) ->
-      typ_bitvec (size+size')
+      typ_bitvec (Big_int_Z.big_int_of_int (size+size'))
   | BinRep.Opcode _ | BinRep.Reserved _ -> assert false in
   let ast_type = match ifields with
-    | [] -> type_union_id name
+(*    | [] -> type_union_id name *)
     | _ -> let ftypes = List.map field_type ifields in
         type_union_ty_id (typ_tup ftypes) name in
   scattered_unioncl "ast" ast_type
@@ -426,10 +426,10 @@ let make_decode name binrep ifields =
 (*        pat_vector (List.map
           (fun bit -> pat_lit (if bit then A.L_one else A.L_zero))
           (to_big_endian value size)) *)
-    | BinRep.Reserved (_, size) -> pat_typ (typ_bitvec size) pat_wild
+    | BinRep.Reserved (_, size) -> pat_typ (typ_bitvec (Big_int_Z.big_int_of_int size)) pat_wild
     | BinRep.Ifield (name, (_, 1)) -> pat_vector [pat_id name]
     | BinRep.Ifield (name, (_, size)) ->
-        pat_typ (typ_bitvec size) (pat_id name)
+        pat_typ (typ_bitvec (Big_int_Z.big_int_of_int size)) (pat_id name)
     | BinRep.SplitIfield _ -> assert false
     ) binrep_nosplit in
   let decode_extract = List.map (function

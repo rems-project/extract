@@ -1,9 +1,9 @@
 module SG = SailGen
 
 type action =
-    Insert of Type_internal.tannot Ast.exp list (* add before instruction *)
-  | Replace of Type_internal.tannot Ast.exp list (* replace instruction *)
-  | Append of Type_internal.tannot Ast.exp list (* add after instruction *)
+    Insert of Ast.typ_aux Ast.exp list (* add before instruction *)
+  | Replace of Ast.typ_aux Ast.exp list (* replace instruction *)
+  | Append of Ast.typ_aux Ast.exp list (* add after instruction *)
 
 (** The database associates each mnemonic to a list of position and
  * action to perform at that position (insertion or deletion). *)
